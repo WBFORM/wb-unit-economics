@@ -155,16 +155,6 @@
       white-space: nowrap;
     }
 
-    .warehouse-search {
-      margin-bottom: 4px;
-    }
-
-    .categories-status {
-      font-size: 11px;
-      color: #9ca3af;
-      margin-top: 2px;
-    }
-
     .section-divider {
       margin: 10px 0;
       border-bottom: 1px dashed #d1d5db;
@@ -354,6 +344,73 @@
         width: 100%;
       }
     }
+
+    /* ---------- КОМБОБОКСЫ (категория и склад) ---------- */
+
+    .combobox {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .combobox-input {
+      flex: 1;
+      padding-right: 28px; /* место под стрелку */
+    }
+
+    .combobox-arrow {
+      position: absolute;
+      right: 8px;
+      pointer-events: none;
+      font-size: 11px;
+      color: #6b7280;
+    }
+
+    .combobox-list {
+      position: absolute;
+      z-index: 20;
+      top: 100%;
+      left: 0;
+      right: 0;
+      margin-top: 4px;
+      max-height: 220px;
+      overflow-y: auto;
+      background: #ffffff;
+      border-radius: 10px;
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.18);
+      border: 1px solid #e5e7eb;
+      padding: 4px 0;
+      display: none;
+    }
+
+    .combobox-option {
+      padding: 6px 10px;
+      font-size: 13px;
+      cursor: pointer;
+      color: #111827;
+      display: flex;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .combobox-option span.meta {
+      font-size: 11px;
+      color: #9ca3af;
+    }
+
+    .combobox-option:hover {
+      background: #eef2ff;
+    }
+
+    .combobox-option.is-active {
+      background: #e0e7ff;
+    }
+
+    .categories-status {
+      font-size: 11px;
+      color: #9ca3af;
+      margin-top: 2px;
+    }
   </style>
 </head>
 <body>
@@ -412,17 +469,19 @@
 
           <div class="grid">
             <div class="field">
-              <label for="categorySearch">Категория товара</label>
-              <small>Поиск и выбор категории</small>
-              <input
-                type="text"
-                id="categorySearch"
-                class="warehouse-search"
-                placeholder="Поиск по категориям..."
-              />
-              <select id="categorySelect">
-                <option value="">— Выберите категорию —</option>
-              </select>
+              <label for="categoryInput">Категория товара</label>
+              <small>Начните вводить или выберите из списка</small>
+              <div class="combobox">
+                <input
+                  type="text"
+                  id="categoryInput"
+                  class="combobox-input"
+                  placeholder="Например, Худи, Платья, Ножи..."
+                  autocomplete="off"
+                />
+                <div class="combobox-arrow">▾</div>
+                <div class="combobox-list" id="categoryList"></div>
+              </div>
               <div class="categories-status" id="categoriesStatus"></div>
             </div>
 
@@ -459,15 +518,19 @@
 
           <div class="grid">
             <div class="field">
-              <label for="warehouse">Склад отгрузки</label>
-              <small>Поиск и выбор склада</small>
-              <input
-                type="text"
-                id="warehouseSearch"
-                class="warehouse-search"
-                placeholder="Поиск по складам..."
-              />
-              <select id="warehouse"></select>
+              <label for="warehouseInput">Склад отгрузки</label>
+              <small>Начните вводить или выберите из списка</small>
+              <div class="combobox">
+                <input
+                  type="text"
+                  id="warehouseInput"
+                  class="combobox-input"
+                  placeholder="Например, Коледино, Электросталь..."
+                  autocomplete="off"
+                />
+                <div class="combobox-arrow">▾</div>
+                <div class="combobox-list" id="warehouseList"></div>
+              </div>
             </div>
 
             <div class="field">
@@ -754,6 +817,9 @@
     let warehouses = [];
     let filteredWarehouses = [];
 
+    let selectedCategory = null;
+    let selectedWarehouse = null;
+
     function toNumber(value) {
       const n = parseFloat((value || '').toString().replace(',', '.'));
       return isNaN(n) ? 0 : n;
@@ -791,32 +857,88 @@
       });
     }
 
-    /* ---------- СКЛАДЫ ---------- */
+    /* ---------- СКЛАДЫ: КОМБОБОКС ---------- */
+
+    let warehouseSearchTimer = null;
 
     function initWarehouses() {
-      filteredWarehouses = [...warehouses];
-      renderWarehouseOptions();
-      const searchInput = document.getElementById('warehouseSearch');
-      if (searchInput) {
-        searchInput.addEventListener('input', onWarehouseSearch);
-      }
-    }
+      const input = document.getElementById('warehouseInput');
+      const listEl = document.getElementById('warehouseList');
+      if (!input || !listEl) return;
 
-    function renderWarehouseOptions() {
-      const select = document.getElementById('warehouse');
-      if (!select) return;
-      select.innerHTML = '';
-      filteredWarehouses.forEach((w, index) => {
-        const option = document.createElement('option');
-        option.value = w.coef.toString();
-        option.textContent = w.name;
-        if (index === 0) option.selected = true;
-        select.appendChild(option);
+      filteredWarehouses = [...warehouses];
+      renderWarehouseList();
+
+      // Открытие списка по фокусу/клику
+      input.addEventListener('focus', () => {
+        showWarehouseList();
+      });
+
+      input.addEventListener('click', () => {
+        toggleWarehouseList();
+      });
+
+      // Фильтрация при вводе
+      input.addEventListener('input', e => {
+        clearTimeout(warehouseSearchTimer);
+        const value = e.target.value;
+        warehouseSearchTimer = setTimeout(() => {
+          filterWarehouses(value);
+          showWarehouseList();
+        }, 150);
+      });
+
+      // Клик вне — закрываем
+      document.addEventListener('click', e => {
+        if (!input.closest('.combobox')?.contains(e.target)) {
+          hideWarehouseList();
+        }
       });
     }
 
-    function onWarehouseSearch(e) {
-      const query = e.target.value.toLowerCase();
+    function renderWarehouseList() {
+      const listEl = document.getElementById('warehouseList');
+      if (!listEl) return;
+
+      listEl.innerHTML = '';
+
+      if (!filteredWarehouses || filteredWarehouses.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'combobox-option';
+        empty.textContent = 'Ничего не найдено';
+        listEl.appendChild(empty);
+        return;
+      }
+
+      filteredWarehouses.forEach(w => {
+        const opt = document.createElement('div');
+        opt.className = 'combobox-option';
+        opt.dataset.name = w.name;
+        opt.innerHTML = `
+          <span>${w.name}</span>
+          <span class="meta">${w.coef != null ? 'Коэф. ' + w.coef : ''}</span>
+        `;
+
+        opt.addEventListener('click', () => {
+          const input = document.getElementById('warehouseInput');
+          if (!input) return;
+
+          input.value = w.name;
+          selectedWarehouse = w;
+
+          hideWarehouseList();
+
+          if (hasAnyMainInputsFilled()) {
+            calculate();
+          }
+        });
+
+        listEl.appendChild(opt);
+      });
+    }
+
+    function filterWarehouses(queryRaw) {
+      const query = (queryRaw || '').toLowerCase();
       if (!query) {
         filteredWarehouses = [...warehouses];
       } else {
@@ -824,21 +946,39 @@
           w.name.toLowerCase().includes(query)
         );
       }
-      renderWarehouseOptions();
+      renderWarehouseList();
     }
 
-    /* ---------- КАТЕГОРИИ ---------- */
+    function showWarehouseList() {
+      const listEl = document.getElementById('warehouseList');
+      if (!listEl) return;
+      listEl.style.display = 'block';
+    }
+
+    function hideWarehouseList() {
+      const listEl = document.getElementById('warehouseList');
+      if (!listEl) return;
+      listEl.style.display = 'none';
+    }
+
+    function toggleWarehouseList() {
+      const listEl = document.getElementById('warehouseList');
+      if (!listEl) return;
+      listEl.style.display = listEl.style.display === 'block' ? 'none' : 'block';
+    }
+
+    /* ---------- КАТЕГОРИИ: КОМБОБОКС ---------- */
 
     let categorySearchTimer = null;
 
     function initCategories() {
-      const searchInput = document.getElementById('categorySearch');
-      const select = document.getElementById('categorySelect');
+      const input = document.getElementById('categoryInput');
+      const listEl = document.getElementById('categoryList');
       const statusEl = document.getElementById('categoriesStatus');
-      if (!select) return;
+
+      if (!input || !listEl) return;
 
       if (!categories || categories.length === 0) {
-        select.innerHTML = '<option value="">— Категории не загружены —</option>';
         if (statusEl) {
           statusEl.textContent = 'Категории не загружены (проверьте categories.json).';
         }
@@ -846,58 +986,86 @@
       }
 
       filteredCategories = [...categories];
-      renderCategoryOptions();
+      renderCategoryList();
 
       if (statusEl) {
         statusEl.textContent = 'Загружено категорий: ' + categories.length;
       }
 
-      if (searchInput) {
-        searchInput.addEventListener('input', e => {
-          clearTimeout(categorySearchTimer);
-          const value = e.target.value;
-          categorySearchTimer = setTimeout(() => {
-            onCategorySearch(value);
-          }, 200);
-        });
-      }
+      // Открытие списка по фокусу/клику
+      input.addEventListener('focus', () => {
+        showCategoryList();
+      });
 
-      select.addEventListener('change', () => {
-        const feePercentInput = document.getElementById('feePercent');
-        const idxStr = select.value;
-        if (!idxStr || !feePercentInput) return;
+      input.addEventListener('click', () => {
+        toggleCategoryList();
+      });
 
-        const idx = parseInt(idxStr, 10);
-        const cat = filteredCategories[idx];
-        if (!cat || typeof cat.fee === 'undefined') return;
+      // Фильтрация при вводе
+      input.addEventListener('input', e => {
+        clearTimeout(categorySearchTimer);
+        const value = e.target.value;
+        categorySearchTimer = setTimeout(() => {
+          filterCategories(value);
+          showCategoryList();
+        }, 150);
+      });
 
-        const feeVal = Number(cat.fee);
-        if (isNaN(feeVal)) return;
-
-        feePercentInput.value = feeVal.toString();
-
-        // Автопересчёт можно оставить; если будет тяжело на мобилках — отключим
-        if (hasAnyMainInputsFilled()) {
-          calculate();
+      // Клик вне — закрываем
+      document.addEventListener('click', e => {
+        if (!input.closest('.combobox')?.contains(e.target)) {
+          hideCategoryList();
         }
       });
     }
 
-    function renderCategoryOptions() {
-      const select = document.getElementById('categorySelect');
-      if (!select) return;
+    function renderCategoryList() {
+      const listEl = document.getElementById('categoryList');
+      if (!listEl) return;
 
-      select.innerHTML = '<option value="">— Выберите категорию —</option>';
+      listEl.innerHTML = '';
 
-      filteredCategories.forEach((cat, index) => {
-        const option = document.createElement('option');
-        option.value = String(index);  // индекс в filteredCategories
-        option.textContent = cat.name;
-        select.appendChild(option);
+      if (!filteredCategories || filteredCategories.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'combobox-option';
+        empty.textContent = 'Ничего не найдено';
+        listEl.appendChild(empty);
+        return;
+      }
+
+      filteredCategories.forEach(cat => {
+        const opt = document.createElement('div');
+        opt.className = 'combobox-option';
+        opt.dataset.name = cat.name;
+        opt.innerHTML = `
+          <span>${cat.name}</span>
+          <span class="meta">${cat.fee != null ? cat.fee + ' %' : ''}</span>
+        `;
+
+        opt.addEventListener('click', () => {
+          const input = document.getElementById('categoryInput');
+          const feePercentInput = document.getElementById('feePercent');
+          if (!input || !feePercentInput) return;
+
+          input.value = cat.name;
+          selectedCategory = cat;
+
+          if (typeof cat.fee !== 'undefined' && !isNaN(Number(cat.fee))) {
+            feePercentInput.value = Number(cat.fee).toString();
+          }
+
+          hideCategoryList();
+
+          if (hasAnyMainInputsFilled()) {
+            calculate();
+          }
+        });
+
+        listEl.appendChild(opt);
       });
     }
 
-    function onCategorySearch(queryRaw) {
+    function filterCategories(queryRaw) {
       const query = (queryRaw || '').toLowerCase();
       if (!query) {
         filteredCategories = [...categories];
@@ -906,7 +1074,25 @@
           cat.name.toLowerCase().includes(query)
         );
       }
-      renderCategoryOptions();
+      renderCategoryList();
+    }
+
+    function showCategoryList() {
+      const listEl = document.getElementById('categoryList');
+      if (!listEl) return;
+      listEl.style.display = 'block';
+    }
+
+    function hideCategoryList() {
+      const listEl = document.getElementById('categoryList');
+      if (!listEl) return;
+      listEl.style.display = 'none';
+    }
+
+    function toggleCategoryList() {
+      const listEl = document.getElementById('categoryList');
+      if (!listEl) return;
+      listEl.style.display = listEl.style.display === 'block' ? 'none' : 'block';
     }
 
     /* ---------- ЗАГРУЗКА JSON ---------- */
@@ -952,7 +1138,11 @@
       const lengthCm = toNumber(document.getElementById('lengthCm').value);
       const widthCm = toNumber(document.getElementById('widthCm').value);
       const heightCm = toNumber(document.getElementById('heightCm').value);
-      const warehouseCoef = toNumber(document.getElementById('warehouse').value);
+
+      const warehouseCoef = selectedWarehouse && !isNaN(Number(selectedWarehouse.coef))
+        ? Number(selectedWarehouse.coef)
+        : 1;
+
       const ilValue = toNumber(document.getElementById('ilValue').value);
       const irpValue = toNumber(document.getElementById('irpValue').value);
 
@@ -1132,31 +1322,30 @@
         'otherCosts',
         'ilValue',
         'irpValue',
-        'warehouseSearch',
-        'categorySearch',
         'taxPercent',
         'acquiringPercent',
-        'targetMargin'
+        'targetMargin',
+        'categoryInput',
+        'warehouseInput'
       ];
       ids.forEach(id => {
         const el = document.getElementById(id);
         if (el) el.value = '';
       });
 
-      const catSelect = document.getElementById('categorySelect');
-      if (catSelect) catSelect.value = '';
-
       const statusEl = document.getElementById('categoriesStatus');
       if (statusEl) statusEl.textContent = '';
 
       filteredWarehouses = [...warehouses];
-      renderWarehouseOptions();
+      renderWarehouseList();
 
       filteredCategories = [...categories];
-      renderCategoryOptions();
+      renderCategoryList();
 
       document.getElementById('results').style.display = 'none';
       lastCalculation = null;
+      selectedCategory = null;
+      selectedWarehouse = null;
     }
 
     function saveToTable() {
