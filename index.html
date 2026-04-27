@@ -124,8 +124,7 @@
       margin-bottom: 3px;
     }
 
-    .field input,
-    .field select {
+    .field input {
       padding: 7px 9px;
       border-radius: 8px;
       border: 1px solid #d1d5db;
@@ -136,8 +135,7 @@
       width: 100%;
     }
 
-    .field input:focus,
-    .field select:focus {
+    .field input:focus {
       border-color: #4f46e5;
       box-shadow: 0 0 0 1px rgba(79, 70, 229, 0.2);
       background: #ffffff;
@@ -345,7 +343,7 @@
       }
     }
 
-    /* ---------- КОМБОБОКСЫ (категория и склад) ---------- */
+    /* ---------- КОМБОБОКСЫ ---------- */
 
     .combobox {
       position: relative;
@@ -355,7 +353,7 @@
 
     .combobox-input {
       flex: 1;
-      padding-right: 28px; /* место под стрелку */
+      padding-right: 28px;
     }
 
     .combobox-arrow {
@@ -421,7 +419,7 @@
         <div class="subtitle">Быстрый расчёт прибыльности товара на маркетплейсе.</div>
       </div>
       <div class="app-meta">
-        <div>v1.0 · офлайн‑расчёт в браузере</div>
+        <div>v1.1 · офлайн‑расчёт в браузере</div>
       </div>
     </header>
 
@@ -437,8 +435,45 @@
                 <span>1. Карточка товара</span>
               </div>
               <div class="card-subtitle">
-                Название, категория, комиссия и цены.
+                Сначала выбираем родителя и категорию, потом заполняем параметры.
               </div>
+            </div>
+          </div>
+
+          <div class="grid">
+            <div class="field">
+              <label for="parentCategoryInput">Родительская категория</label>
+              <small>Например: Одежда, Обувь, Товары для дома</small>
+              <div class="combobox">
+                <input
+                  type="text"
+                  id="parentCategoryInput"
+                  class="combobox-input"
+                  placeholder="Выберите родительскую категорию"
+                  autocomplete="off"
+                  readonly
+                />
+                <div class="combobox-arrow">▾</div>
+                <div class="combobox-list" id="parentCategoryList"></div>
+              </div>
+              <div class="categories-status" id="parentCategoriesStatus"></div>
+            </div>
+
+            <div class="field">
+              <label for="categoryInput">Категория товара</label>
+              <small>Фильтруется по выбранной родительской категории</small>
+              <div class="combobox">
+                <input
+                  type="text"
+                  id="categoryInput"
+                  class="combobox-input"
+                  placeholder="Начните вводить категорию"
+                  autocomplete="off"
+                />
+                <div class="combobox-arrow">▾</div>
+                <div class="combobox-list" id="categoryList"></div>
+              </div>
+              <div class="categories-status" id="categoriesStatus"></div>
             </div>
           </div>
 
@@ -460,36 +495,6 @@
               <small>Для отображения цены для покупателя</small>
               <div class="inline-suffix">
                 <input type="number" id="sppPercent" placeholder="например, 10" step="0.01" />
-                <span>%</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="section-divider"></div>
-
-          <div class="grid">
-            <div class="field">
-              <label for="categoryInput">Категория товара</label>
-              <small>Начните вводить или выберите из списка</small>
-              <div class="combobox">
-                <input
-                  type="text"
-                  id="categoryInput"
-                  class="combobox-input"
-                  placeholder="Например, Худи, Платья, Ножи..."
-                  autocomplete="off"
-                />
-                <div class="combobox-arrow">▾</div>
-                <div class="combobox-list" id="categoryList"></div>
-              </div>
-              <div class="categories-status" id="categoriesStatus"></div>
-            </div>
-
-            <div class="field">
-              <label for="feePercent">Комиссия маркетплейса, %</label>
-              <small>Подставляется из категории, можно изменить</small>
-              <div class="inline-suffix">
-                <input type="number" id="feePercent" placeholder="например, 15" step="0.01" />
                 <span>%</span>
               </div>
             </div>
@@ -788,6 +793,8 @@
               <thead>
                 <tr>
                   <th>Товар</th>
+                  <th>Родитель</th>
+                  <th>Категория</th>
                   <th>Цена до СПП, ₽</th>
                   <th>Цена для покупателя, ₽</th>
                   <th>Комиссия, ₽</th>
@@ -813,12 +820,15 @@
     let lastCalculation = null;
 
     let categories = [];
+    let parentCategories = [];
     let filteredCategories = [];
     let warehouses = [];
     let filteredWarehouses = [];
 
+    let selectedParentCategory = null;
     let selectedCategory = null;
     let selectedWarehouse = null;
+    let currentFeePercent = 0; // комиссия категории, скрытая от пользователя
 
     function toNumber(value) {
       const n = parseFloat((value || '').toString().replace(',', '.'));
@@ -869,7 +879,6 @@
       filteredWarehouses = [...warehouses];
       renderWarehouseList();
 
-      // Открытие списка по фокусу/клику
       input.addEventListener('focus', () => {
         showWarehouseList();
       });
@@ -878,7 +887,6 @@
         toggleWarehouseList();
       });
 
-      // Фильтрация при вводе
       input.addEventListener('input', e => {
         clearTimeout(warehouseSearchTimer);
         const value = e.target.value;
@@ -888,7 +896,6 @@
         }, 150);
       });
 
-      // Клик вне — закрываем
       document.addEventListener('click', e => {
         if (!input.closest('.combobox')?.contains(e.target)) {
           hideWarehouseList();
@@ -967,9 +974,98 @@
       listEl.style.display = listEl.style.display === 'block' ? 'none' : 'block';
     }
 
-    /* ---------- КАТЕГОРИИ: КОМБОБОКС ---------- */
+    /* ---------- КАТЕГОРИИ: РОДИТЕЛЬ + КОМБОБОКС ---------- */
 
     let categorySearchTimer = null;
+
+    function initParentCategories() {
+      const parentInput = document.getElementById('parentCategoryInput');
+      const parentListEl = document.getElementById('parentCategoryList');
+      const parentStatus = document.getElementById('parentCategoriesStatus');
+
+      if (!parentInput || !parentListEl) return;
+
+      // Собираем уникальные parent из categories
+      const parentsSet = new Set();
+      categories.forEach(c => {
+        if (c.parent) {
+          parentsSet.add(String(c.parent).trim());
+        }
+      });
+      parentCategories = Array.from(parentsSet).sort((a, b) =>
+        a.localeCompare(b, 'ru')
+      );
+
+      parentListEl.innerHTML = '';
+
+      if (parentCategories.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'combobox-option';
+        empty.textContent = 'Родительские категории не найдены';
+        parentListEl.appendChild(empty);
+      } else {
+        parentCategories.forEach(parentName => {
+          const opt = document.createElement('div');
+          opt.className = 'combobox-option';
+          opt.textContent = parentName;
+
+          opt.addEventListener('click', () => {
+            parentInput.value = parentName;
+            selectedParentCategory = parentName;
+
+            // При смене родителя сбрасываем категорию
+            const catInput = document.getElementById('categoryInput');
+            if (catInput) catInput.value = '';
+            selectedCategory = null;
+            currentFeePercent = 0;
+            filterCategoriesForParent();
+            hideParentList();
+
+            if (hasAnyMainInputsFilled()) {
+              calculate();
+            }
+          });
+
+          parentListEl.appendChild(opt);
+        });
+      }
+
+      if (parentStatus) {
+        parentStatus.textContent = 'Родительских категорий: ' + parentCategories.length;
+      }
+
+      parentInput.addEventListener('click', () => {
+        toggleParentList();
+      });
+
+      parentInput.addEventListener('focus', () => {
+        showParentList();
+      });
+
+      document.addEventListener('click', e => {
+        if (!parentInput.closest('.combobox')?.contains(e.target)) {
+          hideParentList();
+        }
+      });
+    }
+
+    function showParentList() {
+      const parentListEl = document.getElementById('parentCategoryList');
+      if (!parentListEl) return;
+      parentListEl.style.display = 'block';
+    }
+
+    function hideParentList() {
+      const parentListEl = document.getElementById('parentCategoryList');
+      if (!parentListEl) return;
+      parentListEl.style.display = 'none';
+    }
+
+    function toggleParentList() {
+      const parentListEl = document.getElementById('parentCategoryList');
+      if (!parentListEl) return;
+      parentListEl.style.display = parentListEl.style.display === 'block' ? 'none' : 'block';
+    }
 
     function initCategories() {
       const input = document.getElementById('categoryInput');
@@ -985,6 +1081,7 @@
         return;
       }
 
+      // По умолчанию — все категории, но фактически используем filterCategoriesForParent()
       filteredCategories = [...categories];
       renderCategoryList();
 
@@ -992,7 +1089,6 @@
         statusEl.textContent = 'Загружено категорий: ' + categories.length;
       }
 
-      // Открытие списка по фокусу/клику
       input.addEventListener('focus', () => {
         showCategoryList();
       });
@@ -1001,7 +1097,6 @@
         toggleCategoryList();
       });
 
-      // Фильтрация при вводе
       input.addEventListener('input', e => {
         clearTimeout(categorySearchTimer);
         const value = e.target.value;
@@ -1011,12 +1106,22 @@
         }, 150);
       });
 
-      // Клик вне — закрываем
       document.addEventListener('click', e => {
         if (!input.closest('.combobox')?.contains(e.target)) {
           hideCategoryList();
         }
       });
+    }
+
+    function filterCategoriesForParent() {
+      if (!selectedParentCategory) {
+        filteredCategories = [...categories];
+      } else {
+        filteredCategories = categories.filter(cat =>
+          String(cat.parent).trim() === String(selectedParentCategory).trim()
+        );
+      }
+      renderCategoryList();
     }
 
     function renderCategoryList() {
@@ -1028,7 +1133,9 @@
       if (!filteredCategories || filteredCategories.length === 0) {
         const empty = document.createElement('div');
         empty.className = 'combobox-option';
-        empty.textContent = 'Ничего не найдено';
+        empty.textContent = selectedParentCategory
+          ? 'Нет категорий в выбранной родительской группе'
+          : 'Ничего не найдено';
         listEl.appendChild(empty);
         return;
       }
@@ -1044,14 +1151,15 @@
 
         opt.addEventListener('click', () => {
           const input = document.getElementById('categoryInput');
-          const feePercentInput = document.getElementById('feePercent');
-          if (!input || !feePercentInput) return;
+          if (!input) return;
 
           input.value = cat.name;
           selectedCategory = cat;
 
           if (typeof cat.fee !== 'undefined' && !isNaN(Number(cat.fee))) {
-            feePercentInput.value = Number(cat.fee).toString();
+            currentFeePercent = Number(cat.fee);
+          } else {
+            currentFeePercent = 0;
           }
 
           hideCategoryList();
@@ -1067,10 +1175,18 @@
 
     function filterCategories(queryRaw) {
       const query = (queryRaw || '').toLowerCase();
+      let base = categories;
+
+      if (selectedParentCategory) {
+        base = categories.filter(cat =>
+          String(cat.parent).trim() === String(selectedParentCategory).trim()
+        );
+      }
+
       if (!query) {
-        filteredCategories = [...categories];
+        filteredCategories = base;
       } else {
-        filteredCategories = categories.filter(cat =>
+        filteredCategories = base.filter(cat =>
           cat.name.toLowerCase().includes(query)
         );
       }
@@ -1121,13 +1237,13 @@
             .then(data => {
               categories = data;
               initCategories();
+              initParentCategories();
             })
             .catch(err => {
               console.error('Ошибка загрузки categories.json:', err);
               if (categoriesStatus) {
                 categoriesStatus.textContent = 'Ошибка загрузки категорий (categories.json).';
               }
-              initCategories();
             });
         });
     });
@@ -1148,14 +1264,14 @@
 
       const P = toNumber(document.getElementById('price').value);
       const C_purchase = toNumber(document.getElementById('purchase').value);
-      const fee_percent = toNumber(document.getElementById('feePercent').value);
       const spp_percent = toNumber(document.getElementById('sppPercent').value);
       const buyout_rate_percent = toNumber(document.getElementById('buyoutRate').value);
       const ads_percent = toNumber(document.getElementById('adsPercent').value);
       const other_costs = toNumber(document.getElementById('otherCosts').value);
       const tax_percent = toNumber(document.getElementById('taxPercent').value);
       const acquiring_percent = toNumber(document.getElementById('acquiringPercent').value);
-      const target_margin_percent = toNumber(document.getElementById('targetMargin').value);
+
+      const fee_percent = currentFeePercent || 0;
 
       if (P <= 0) {
         alert('Введите корректную цену продажи.');
@@ -1225,231 +1341,149 @@
       }
 
       const C_total = C_base_before_tax + C_tax;
-      const Profit_per_unit = P - C_total;
-      const Margin_percent = P > 0 ? (Profit_per_unit / P) * 100 : 0;
+      const Profit = P - C_total;
+      const margin_percent = P > 0 ? (Profit / P) * 100 : 0;
 
       let P_min = 0;
-      if (target_margin_percent > 0 && target_margin_percent < 100) {
-        const M = target_margin_percent / 100;
-        const k = fee_percent / 100 + acquiring_percent / 100;
-        const C_base_for_min =
-          C_purchase + C_logistics_per_unit + ads_per_sale + other_costs;
-        const denominator = 1 - k - M;
-        if (denominator > 0) {
-          P_min = C_base_for_min / denominator;
+      const target_margin_percent = toNumber(document.getElementById('targetMargin').value);
+      if (target_margin_percent > 0) {
+        const m = target_margin_percent / 100;
+        const k = 1 - (fee_percent + acquiring_percent + ads_percent + tax_percent) / 100;
+        const C_fixed = C_purchase + other_costs;
+        const C_log = C_logistics_per_unit;
+        const k2 = (fee_percent + acquiring_percent + ads_percent + tax_percent) / 100;
+
+        const denom = 1 - k2 - m;
+        if (denom > 0) {
+          P_min = (C_fixed + C_log) / denom;
+        } else {
+          P_min = 0;
         }
       }
 
-      document.getElementById('volumeValue').textContent =
-        volume_l.toFixed(3);
-      document.getElementById('priceBeforeSppValue').textContent =
-        P.toFixed(2);
-      document.getElementById('priceForBuyerValue').textContent =
-        P_for_buyer.toFixed(2);
-      document.getElementById('feeValue').textContent =
-        C_fee.toFixed(2);
-      document.getElementById('acqValue').textContent =
-        C_acq.toFixed(2);
-      document.getElementById('taxValue').textContent =
-        C_tax.toFixed(2);
-      document.getElementById('shipToValue').textContent =
-        C_ship_to.toFixed(2);
-      document.getElementById('shipBackValue').textContent =
-        C_ship_back.toFixed(2);
-      document.getElementById('logisticsValue').textContent =
-        C_logistics_per_unit.toFixed(2);
-      document.getElementById('totalCostValue').textContent =
-        C_total.toFixed(2);
-      document.getElementById('profitValue').textContent =
-        Profit_per_unit.toFixed(2);
-      document.getElementById('marginValue').textContent =
-        Margin_percent.toFixed(2);
-      document.getElementById('minPriceValue').textContent =
-        P_min > 0 ? P_min.toFixed(2) : '—';
+      document.getElementById('results').style.display = 'block';
+      document.getElementById('volumeValue').textContent = volume_l.toFixed(2);
+      document.getElementById('priceBeforeSppValue').textContent = P.toFixed(2);
+      document.getElementById('priceForBuyerValue').textContent = P_for_buyer.toFixed(2);
+      document.getElementById('feeValue').textContent = C_fee.toFixed(2);
+      document.getElementById('acqValue').textContent = C_acq.toFixed(2);
+      document.getElementById('taxValue').textContent = C_tax.toFixed(2);
+      document.getElementById('shipToValue').textContent = C_ship_to.toFixed(2);
+      document.getElementById('shipBackValue').textContent = C_ship_back.toFixed(2);
+      document.getElementById('logisticsValue').textContent = C_logistics_per_unit.toFixed(2);
+      document.getElementById('totalCostValue').textContent = C_total.toFixed(2);
+      document.getElementById('profitValue').textContent = Profit.toFixed(2);
+      document.getElementById('marginValue').textContent = margin_percent.toFixed(2);
+      document.getElementById('minPriceValue').textContent = P_min > 0 ? P_min.toFixed(2) : '—';
 
       const statusBox = document.getElementById('statusBox');
       const statusText = statusBox.querySelector('.status-text');
       statusBox.classList.remove('good', 'bad', 'neutral');
 
-      const eps = 0.01;
-      if (Profit_per_unit > eps) {
+      if (margin_percent >= 20) {
         statusBox.classList.add('good');
-        statusText.textContent =
-          'Юнит‑экономика прибыльная. Товар приносит прибыль с каждой выкупленной единицы.';
-      } else if (Profit_per_unit < -eps) {
-        statusBox.classList.add('bad');
-        statusText.textContent =
-          'Юнит‑экономика убыточная. При текущих условиях товар теряет деньги на каждой выкупленной единице.';
-      } else {
+        statusText.textContent = 'Маржа выглядит комфортной. Можно масштабироваться или тестировать более агрессивную рекламу.';
+      } else if (margin_percent > 0) {
         statusBox.classList.add('neutral');
-        statusText.textContent =
-          'Юнит‑экономика около нуля. Любое увеличение затрат или снижение цены может сделать товар убыточным.';
+        statusText.textContent = 'Маржа положительная, но невысокая. Имеет смысл доработать цену, себестоимость или рекламу.';
+      } else {
+        statusBox.classList.add('bad');
+        statusText.textContent = 'Юнит в минусе. Проверьте цену, себестоимость, логистику и рекламные расходы.';
       }
 
-      document.getElementById('results').style.display = 'block';
-
       lastCalculation = {
-        productName: document.getElementById('productName').value || 'Без названия',
-        priceBeforeSpp: P,
-        priceForBuyer: P_for_buyer,
+        productName: document.getElementById('productName').value || '',
+        parentCategory: selectedParentCategory || '',
+        categoryName: selectedCategory ? selectedCategory.name : '',
         price: P,
+        priceForBuyer: P_for_buyer,
         fee: C_fee,
-        logistics_per_unit: C_logistics_per_unit,
+        logistics: C_logistics_per_unit,
         ads: ads_per_sale,
-        other: other_costs,
+        otherCosts: other_costs,
         purchase: C_purchase,
         acquiring: C_acq,
         tax: C_tax,
-        profit: Profit_per_unit,
-        margin: Margin_percent
+        profit: Profit,
+        margin: margin_percent
       };
     }
 
-    /* ---------- СБРОС, ТАБЛИЦА, CSV ---------- */
+    /* ---------- СБРОС / ИСТОРИЯ / CSV ---------- */
 
     function resetForm() {
-      const ids = [
-        'productName',
-        'lengthCm',
-        'widthCm',
-        'heightCm',
-        'price',
-        'purchase',
-        'feePercent',
-        'sppPercent',
-        'buyoutRate',
-        'adsPercent',
-        'otherCosts',
-        'ilValue',
-        'irpValue',
-        'taxPercent',
-        'acquiringPercent',
-        'targetMargin',
-        'categoryInput',
-        'warehouseInput'
-      ];
-      ids.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.value = '';
+      const inputs = document.querySelectorAll('input[type="number"], input[type="text"]');
+      inputs.forEach(el => {
+        if (el.id === 'parentCategoryInput') return; // родителя и категорию можно сбросить вручную
+        el.value = '';
       });
 
-      const statusEl = document.getElementById('categoriesStatus');
-      if (statusEl) statusEl.textContent = '';
-
-      filteredWarehouses = [...warehouses];
-      renderWarehouseList();
-
-      filteredCategories = [...categories];
-      renderCategoryList();
+      selectedWarehouse = null;
+      selectedCategory = null;
+      currentFeePercent = 0;
 
       document.getElementById('results').style.display = 'none';
-      lastCalculation = null;
-      selectedCategory = null;
-      selectedWarehouse = null;
     }
 
     function saveToTable() {
       if (!lastCalculation) {
-        alert('Сначала выполните расчёт, затем сохраните результат.');
+        alert('Сначала выполните расчёт.');
         return;
       }
 
       const tableSection = document.getElementById('tableSection');
       const tbody = document.querySelector('#resultsTable tbody');
 
+      tableSection.style.display = 'block';
+
       const row = document.createElement('tr');
 
-      const nameCell = document.createElement('td');
-      nameCell.textContent = lastCalculation.productName;
+      function td(text) {
+        const cell = document.createElement('td');
+        cell.textContent = text;
+        return cell;
+      }
 
-      const priceBeforeCell = document.createElement('td');
-      priceBeforeCell.textContent = lastCalculation.priceBeforeSpp.toFixed(2);
-
-      const priceBuyerCell = document.createElement('td');
-      priceBuyerCell.textContent = lastCalculation.priceForBuyer.toFixed(2);
-
-      const feeCell = document.createElement('td');
-      feeCell.textContent = lastCalculation.fee.toFixed(2);
-
-      const logCell = document.createElement('td');
-      logCell.textContent = lastCalculation.logistics_per_unit.toFixed(2);
-
-      const adsCell = document.createElement('td');
-      adsCell.textContent = lastCalculation.ads.toFixed(2);
-
-      const otherCell = document.createElement('td');
-      otherCell.textContent = lastCalculation.other.toFixed(2);
-
-      const purchaseCell = document.createElement('td');
-      purchaseCell.textContent = lastCalculation.purchase.toFixed(2);
-
-      const acqCell = document.createElement('td');
-      acqCell.textContent = lastCalculation.acquiring.toFixed(2);
-
-      const taxCell = document.createElement('td');
-      taxCell.textContent = lastCalculation.tax.toFixed(2);
-
-      const profitCell = document.createElement('td');
-      profitCell.textContent = lastCalculation.profit.toFixed(2);
-
-      const marginCell = document.createElement('td');
-      marginCell.textContent = lastCalculation.margin.toFixed(2);
-
-      row.appendChild(nameCell);
-      row.appendChild(priceBeforeCell);
-      row.appendChild(priceBuyerCell);
-      row.appendChild(feeCell);
-      row.appendChild(logCell);
-      row.appendChild(adsCell);
-      row.appendChild(otherCell);
-      row.appendChild(purchaseCell);
-      row.appendChild(acqCell);
-      row.appendChild(taxCell);
-      row.appendChild(profitCell);
-      row.appendChild(marginCell);
+      row.appendChild(td(lastCalculation.productName || ''));
+      row.appendChild(td(lastCalculation.parentCategory || ''));
+      row.appendChild(td(lastCalculation.categoryName || ''));
+      row.appendChild(td(lastCalculation.price.toFixed(2)));
+      row.appendChild(td(lastCalculation.priceForBuyer.toFixed(2)));
+      row.appendChild(td(lastCalculation.fee.toFixed(2)));
+      row.appendChild(td(lastCalculation.logistics.toFixed(2)));
+      row.appendChild(td(lastCalculation.ads.toFixed(2)));
+      row.appendChild(td(lastCalculation.otherCosts.toFixed(2)));
+      row.appendChild(td(lastCalculation.purchase.toFixed(2)));
+      row.appendChild(td(lastCalculation.acquiring.toFixed(2)));
+      row.appendChild(td(lastCalculation.tax.toFixed(2)));
+      row.appendChild(td(lastCalculation.profit.toFixed(2)));
+      row.appendChild(td(lastCalculation.margin.toFixed(2)));
 
       tbody.appendChild(row);
-      tableSection.style.display = 'block';
     }
 
     function exportToCSV() {
       const table = document.getElementById('resultsTable');
-      const tbody = table.querySelector('tbody');
-      if (!tbody || tbody.rows.length === 0) {
-        alert('Нет сохранённых строк для экспорта.');
+      const rows = Array.from(table.querySelectorAll('tr'));
+      if (rows.length <= 1) {
+        alert('Нет данных для экспорта. Сохраните хотя бы один расчёт в историю.');
         return;
       }
 
-      let csvContent = '';
-      const headers = [];
-      table.querySelectorAll('thead th').forEach(th => {
-        const text = '"' + th.textContent.replace(/"/g, '""') + '"';
-        headers.push(text);
-      });
-      csvContent += headers.join(';') + '\n';
+      const csv = rows
+        .map(row =>
+          Array.from(row.querySelectorAll('th,td'))
+            .map(cell => `"${cell.textContent.replace(/"/g, '""')}"`)
+            .join(',')
+        )
+        .join('\n');
 
-      Array.from(tbody.rows).forEach(row => {
-        const cells = [];
-        Array.from(row.cells).forEach(td => {
-          const text = '"' + td.textContent.replace(/"/g, '""') + '"';
-          cells.push(text);
-        });
-        csvContent += cells.join(';') + '\n';
-      });
-
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      const now = new Date();
-      const stamp =
-        now.getFullYear().toString() +
-        ('0' + (now.getMonth() + 1)).slice(-2) +
-        ('0' + now.getDate()).slice(-2) +
-        '_' +
-        ('0' + now.getHours()).slice(-2) +
-        ('0' + now.getMinutes()).slice(-2);
-      a.download = 'unit_economics_' + stamp + '.csv';
+      a.download = 'calculations.csv';
+      a.style.display = 'none';
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
