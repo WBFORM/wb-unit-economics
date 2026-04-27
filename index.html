@@ -22,33 +22,33 @@
       margin: 0 auto;
       background: #fff;
       border-radius: 12px;
-      padding: 20px 24px 28px;
+      padding: 18px 20px 22px;
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
     }
 
     h1 {
-      font-size: 24px;
+      font-size: 22px;
       margin-top: 0;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
 
     .subtitle {
       font-size: 14px;
       color: #555;
-      margin-bottom: 20px;
+      margin-bottom: 18px;
     }
 
     h3 {
-      margin-top: 20px;
-      margin-bottom: 10px;
-      font-size: 16px;
+      margin-top: 18px;
+      margin-bottom: 8px;
+      font-size: 15px;
     }
 
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 16px 24px;
-      margin-bottom: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px 18px;
+      margin-bottom: 10px;
     }
 
     .field {
@@ -58,22 +58,22 @@
 
     .field label {
       font-size: 13px;
-      margin-bottom: 4px;
+      margin-bottom: 3px;
       color: #333;
     }
 
     .field small {
       font-size: 11px;
       color: #777;
-      margin-bottom: 4px;
+      margin-bottom: 3px;
     }
 
     .field input,
     .field select {
-      padding: 8px 10px;
-      border-radius: 8px;
+      padding: 6px 8px;
+      border-radius: 6px;
       border: 1px solid #d0d4e0;
-      font-size: 14px;
+      font-size: 13px;
       outline: none;
       transition: border-color 0.15s;
       background: #fff;
@@ -91,7 +91,7 @@
     }
 
     .inline-suffix span {
-      font-size: 13px;
+      font-size: 12px;
       color: #555;
     }
 
@@ -106,14 +106,14 @@
     }
 
     button {
-      padding: 10px 18px;
-      border-radius: 8px;
+      padding: 8px 14px;
+      border-radius: 6px;
       border: none;
       background: #4b7cff;
       color: #fff;
-      font-size: 14px;
+      font-size: 13px;
       cursor: pointer;
-      margin-bottom: 18px;
+      margin-bottom: 16px;
       margin-right: 8px;
     }
 
@@ -132,18 +132,18 @@
 
     .results {
       border-top: 1px solid #e3e6f0;
-      padding-top: 16px;
-      margin-top: 10px;
+      padding-top: 14px;
+      margin-top: 8px;
     }
 
     .results h2 {
-      font-size: 18px;
-      margin: 0 0 10px;
+      font-size: 17px;
+      margin: 0 0 8px;
     }
 
     .result-line {
-      font-size: 14px;
-      margin-bottom: 4px;
+      font-size: 13px;
+      margin-bottom: 3px;
     }
 
     .result-line span.value {
@@ -151,10 +151,10 @@
     }
 
     .status {
-      margin-top: 10px;
-      padding: 10px 12px;
-      border-radius: 8px;
-      font-size: 14px;
+      margin-top: 8px;
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-size: 13px;
     }
 
     .status.good {
@@ -177,7 +177,7 @@
 
     @media (max-width: 480px) {
       .container {
-        padding: 16px;
+        padding: 14px 12px 18px;
       }
       h1 {
         font-size: 20px;
@@ -189,20 +189,20 @@
     }
 
     .section-divider {
-      margin: 12px 0;
+      margin: 10px 0;
       border-bottom: 1px dashed #d7d9e5;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 10px;
-      font-size: 13px;
+      margin-top: 8px;
+      font-size: 12px;
     }
 
     th, td {
       border: 1px solid #e0e3ee;
-      padding: 6px 8px;
+      padding: 4px 6px;
       text-align: right;
     }
 
@@ -217,11 +217,11 @@
     }
 
     .warehouse-search {
-      margin-bottom: 6px;
+      margin-bottom: 4px;
     }
 
     .categories-status {
-      font-size: 12px;
+      font-size: 11px;
       color: #777;
       margin-top: 2px;
     }
@@ -244,7 +244,7 @@
       </div>
     </div>
 
-    <!-- 1. Габариты и логистика WB -->
+    <!-- 1. Габариты и логистика -->
     <h3>1. Габариты и логистика</h3>
     <div class="grid">
       <div class="field">
@@ -335,7 +335,7 @@
 
       <div class="field">
         <label for="sppPercent">СПП / скидка, %</label>
-        <small>Для наглядности; на расчёт комиссии не влияет</small>
+        <small>Для наглядности; не влияет на расчёт комиссии</small>
         <div class="inline-suffix">
           <input type="number" id="sppPercent" placeholder="например, 10" step="0.01" />
           <span>%</span>
@@ -344,7 +344,7 @@
 
       <div class="field">
         <label for="buyoutRate">Процент выкупа, %</label>
-        <small>От 0 до 100; например, 80 означает 80% выкупа</small>
+        <small>Например, 80 означает 80% выкупа</small>
         <div class="inline-suffix">
           <input type="number" id="buyoutRate" placeholder="например, 80" step="0.01" />
           <span>%</span>
@@ -352,9 +352,12 @@
       </div>
 
       <div class="field">
-        <label for="adsPerSale">Рекламные расходы на один выкуп, ₽</label>
-        <small>Средний расход на рекламу для одной продажи</small>
-        <input type="number" id="adsPerSale" placeholder="например, 100" step="0.01" />
+        <label for="adsPercent">Рекламные расходы (ДРР), %</label>
+        <small>Процент от цены до СПП</small>
+        <div class="inline-suffix">
+          <input type="number" id="adsPercent" placeholder="например, 10" step="0.01" />
+          <span>%</span>
+        </div>
       </div>
 
       <div class="field">
@@ -423,7 +426,7 @@
         <span class="value" id="acqValue"></span> ₽
       </div>
       <div class="result-line">
-        Налог (по текущей прибыли): 
+        Налог: 
         <span class="value" id="taxValue"></span> ₽
       </div>
       <div class="result-line">
@@ -458,7 +461,7 @@
       <div class="status" id="statusBox"></div>
     </div>
 
-    <div id="tableSection" style="margin-top: 20px; display:none;">
+    <div id="tableSection" style="margin-top: 16px; display:none;">
       <h3>Сохранённые расчёты</h3>
       <table id="resultsTable">
         <thead>
@@ -485,13 +488,10 @@
   <script>
     let lastCalculation = null;
 
-    // Конфиги
     let categories = [];
     let filteredCategories = [];
     let warehouses = [];
     let filteredWarehouses = [];
-
-    /* ---------- ХЕЛПЕРЫ ---------- */
 
     function toNumber(value) {
       const n = parseFloat((value || '').toString().replace(',', '.'));
@@ -514,7 +514,7 @@
         'purchase',
         'sppPercent',
         'buyoutRate',
-        'adsPerSale',
+        'adsPercent',
         'otherCosts',
         'ilValue',
         'irpValue',
@@ -548,7 +548,7 @@
       filteredWarehouses.forEach((w, index) => {
         const option = document.createElement('option');
         option.value = w.coef.toString();
-        option.textContent = w.name; // без процентов
+        option.textContent = w.name;
         if (index === 0) option.selected = true;
         select.appendChild(option);
       });
@@ -614,7 +614,7 @@
       filteredCategories.forEach(cat => {
         const option = document.createElement('option');
         option.value = cat.fee.toString();
-        option.textContent = cat.name; // без процента в подписи
+        option.textContent = cat.name;
         select.appendChild(option);
       });
     }
@@ -636,7 +636,6 @@
     window.addEventListener('DOMContentLoaded', () => {
       const categoriesStatus = document.getElementById('categoriesStatus');
 
-      // 1. Грузим склады
       fetch('warehouses.json')
         .then(response => {
           if (!response.ok) throw new Error('HTTP ' + response.status);
@@ -650,7 +649,6 @@
           console.error('Ошибка загрузки warehouses.json:', err);
         })
         .finally(() => {
-          // 2. Грузим категории
           fetch('categories.json')
             .then(response => {
               if (!response.ok) throw new Error('HTTP ' + response.status);
@@ -685,19 +683,19 @@
       const fee_percent = toNumber(document.getElementById('feePercent').value);
       const spp_percent = toNumber(document.getElementById('sppPercent').value);
       const buyout_rate_percent = toNumber(document.getElementById('buyoutRate').value);
-      const ads_per_sale = toNumber(document.getElementById('adsPerSale').value);
+      const ads_percent = toNumber(document.getElementById('adsPercent').value);
       const other_costs = toNumber(document.getElementById('otherCosts').value);
       const tax_percent = toNumber(document.getElementById('taxPercent').value);
       const acquiring_percent = toNumber(document.getElementById('acquiringPercent').value);
       const target_margin_percent = toNumber(document.getElementById('targetMargin').value);
 
       if (P <= 0) {
-        alert('Введите корректную цену продажи (P > 0).');
+        alert('Введите корректную цену продажи.');
         return;
       }
 
-      // СПП не влияет на комиссию и затраты, считаем только как цену для покупателя
-      const P_for_buyer = P * (1 - spp_percent / 100); // отображаемое значение
+      const P_for_buyer = P * (1 - spp_percent / 100);
+      const ads_per_sale = P * (ads_percent / 100); // ДРР в рублях
 
       let volume_l = 0;
       if (lengthCm > 0 && widthCm > 0 && heightCm > 0) {
@@ -732,7 +730,6 @@
 
       const buyout_rate = Math.min(Math.max(buyout_rate_percent, 0), 100) / 100;
 
-      // ВАЖНО: комиссия и эквайринг считаются от цены до СПП (P)
       const C_fee = P * (fee_percent / 100);
       const C_acq = P * (acquiring_percent / 100);
 
@@ -763,7 +760,6 @@
       const Profit_per_unit = P - C_total;
       const Margin_percent = P > 0 ? (Profit_per_unit / P) * 100 : 0;
 
-      // Минимальная цена при целевой марже считается тоже от цены до СПП
       let P_min = 0;
       if (target_margin_percent > 0 && target_margin_percent < 100) {
         const M = target_margin_percent / 100;
@@ -827,7 +823,7 @@
         productName: document.getElementById('productName').value || 'Без названия',
         priceBeforeSpp: P,
         priceForBuyer: P_for_buyer,
-        price: P, // для совместимости
+        price: P,
         fee: C_fee,
         logistics_per_unit: C_logistics_per_unit,
         ads: ads_per_sale,
@@ -853,7 +849,7 @@
         'feePercent',
         'sppPercent',
         'buyoutRate',
-        'adsPerSale',
+        'adsPercent',
         'otherCosts',
         'ilValue',
         'irpValue',
