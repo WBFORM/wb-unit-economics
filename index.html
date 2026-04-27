@@ -607,7 +607,8 @@
         const feeVal = Number(cat.fee);
         if (isNaN(feeVal)) return;
 
-        feePercentInput.value = feeVal.toString().replace('.', ',');
+        // важный фикс: в input type="number" пишем строку с точкой
+        feePercentInput.value = feeVal.toString();
 
         if (hasAnyMainInputsFilled()) {
           calculate();
