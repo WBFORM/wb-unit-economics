@@ -985,16 +985,29 @@
 
       if (!parentInput || !parentListEl) return;
 
-      // Собираем уникальные parent из categories
+      if (!Array.isArray(categories) || categories.length === 0) {
+        parentListEl.innerHTML = '';
+        const empty = document.createElement('div');
+        empty.className = 'combobox-option';
+        empty.textContent = 'Родительские категории не найдены';
+        parentListEl.appendChild(empty);
+        if (parentStatus) {
+          parentStatus.textContent = 'Родительских категорий: 0';
+        }
+        return;
+      }
+
       const parentsSet = new Set();
       categories.forEach(c => {
-        if (c.parent) {
+        if (c && c.parent) {
           parentsSet.add(String(c.parent).trim());
         }
       });
       parentCategories = Array.from(parentsSet).sort((a, b) =>
         a.localeCompare(b, 'ru')
       );
+
+      console.log('PARENT CATEGORIES:', parentCategories);
 
       parentListEl.innerHTML = '';
 
@@ -1013,7 +1026,6 @@
             parentInput.value = parentName;
             selectedParentCategory = parentName;
 
-            // При смене родителя сбрасываем категорию
             const catInput = document.getElementById('categoryInput');
             if (catInput) catInput.value = '';
             selectedCategory = null;
@@ -1064,7 +1076,8 @@
     function toggleParentList() {
       const parentListEl = document.getElementById('parentCategoryList');
       if (!parentListEl) return;
-      parentListEl.style.display = parentListEl.style.display === 'block' ? 'none' : 'block';
+      parentListEl.style.display =
+        parentListEl.style.display === 'block' ? 'none' : 'block';
     }
 
     function initCategories() {
@@ -1081,7 +1094,6 @@
         return;
       }
 
-      // По умолчанию — все категории, но фактически используем filterCategoriesForParent()
       filteredCategories = [...categories];
       renderCategoryList();
 
@@ -1235,7 +1247,19 @@
               return response.json();
             })
             .then(data => {
-              categories = data;
+              if (Array.isArray(data)) {
+                categories = data;
+              } else if (Array.isArray(data.data)) {
+                categories = data.data;
+              } else if (Array.isArray(data.categories)) {
+                categories = data.categories;
+              } else {
+                console.error('Не удалось найти массив категорий в JSON:', data);
+                categories = [];
+              }
+
+              console.log('CATEGORIES LOADED:', categories);
+
               initCategories();
               initParentCategories();
             })
@@ -1348,11 +1372,9 @@
       const target_margin_percent = toNumber(document.getElementById('targetMargin').value);
       if (target_margin_percent > 0) {
         const m = target_margin_percent / 100;
-        const k = 1 - (fee_percent + acquiring_percent + ads_percent + tax_percent) / 100;
+        const k2 = (fee_percent + acquiring_percent + ads_percent + tax_percent) / 100;
         const C_fixed = C_purchase + other_costs;
         const C_log = C_logistics_per_unit;
-        const k2 = (fee_percent + acquiring_percent + ads_percent + tax_percent) / 100;
-
         const denom = 1 - k2 - m;
         if (denom > 0) {
           P_min = (C_fixed + C_log) / denom;
@@ -1414,7 +1436,7 @@
     function resetForm() {
       const inputs = document.querySelectorAll('input[type="number"], input[type="text"]');
       inputs.forEach(el => {
-        if (el.id === 'parentCategoryInput') return; // родителя и категорию можно сбросить вручную
+        if (el.id === 'parentCategoryInput') return;
         el.value = '';
       });
 
