@@ -400,7 +400,7 @@
 
       <div class="meta">
         <span class="tag">supabase auth</span>
-        <a id="back-link" href="/">← Вернуться к калькулятору</a>
+        <a id="back-link" href="https://wbform.github.io/wb-unit-economics/">← Вернуться к калькулятору</a>
       </div>
     </div>
   </div>
@@ -409,7 +409,6 @@
     // 1. Инициализация Supabase клиента
     const { createClient } = supabase;
 
-    // ВАШИ реальные значения
     const supabaseUrl = 'https://mqybpueawhktiqywpked.supabase.co';
     const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1xeWJwdWVhd2hrdGlxeXdwa2VkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczNzg1NjEsImV4cCI6MjA5Mjk1NDU2MX0.zhO5LVkqOVLgB0-C22TR89GXafdZ2xc0F2fMXLhiLik';
 
@@ -426,8 +425,8 @@
     const statusEl = document.getElementById('status');
     const logoutBtn = document.getElementById('logout-btn');
 
-    // Куда редиректить после успешного входа:
-    const AFTER_LOGIN_REDIRECT = '/'; // если калькулятор на index.html в корне
+    // Куда редиректить после успешного входа (GitHub Pages)
+    const AFTER_LOGIN_REDIRECT = 'https://wbform.github.io/wb-unit-economics/';
 
     let mode = 'login'; // 'login' | 'signup'
 
@@ -530,7 +529,6 @@
 
           setStatus('Успешный вход. Перенаправляем в калькулятор...', 'success');
 
-          // Небольшая пауза, чтобы пользователь увидел статус
           setTimeout(() => {
             window.location.href = AFTER_LOGIN_REDIRECT;
           }, 800);
