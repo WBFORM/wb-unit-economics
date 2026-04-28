@@ -937,28 +937,6 @@
       return null;
     }
 
-    function hasAnyMainInputsFilled() {
-      const ids = [
-        'price',
-        'purchase',
-        'sppPercent',
-        'buyoutRate',
-        'adsPercent',
-        'otherCosts',
-        'ilValue',
-        'irpValue',
-        'taxPercent',
-        'acquiringPercent',
-        'lengthCm',
-        'widthCm',
-        'heightCm'
-      ];
-      return ids.some(id => {
-        const el = document.getElementById(id);
-        return el && el.value.toString().trim() !== '';
-      });
-    }
-
     function formatDateShort(d) {
       const day = String(d.getDate()).padStart(2, '0');
       const month = String(d.getMonth() + 1).padStart(2, '0');
@@ -1033,7 +1011,6 @@
           selectedWarehouse = w;
 
           hideWarehouseList();
-          // Убрали автокалькуляцию здесь
         });
 
         listEl.appendChild(opt);
