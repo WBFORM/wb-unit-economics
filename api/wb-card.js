@@ -1,4 +1,5 @@
 // api/wb-card.js
+// Берём только nmId и главное фото товара с WB
 
 export default async function handler(req, res) {
   try {
@@ -13,33 +14,29 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Cannot parse nmId from url' });
     }
 
-    // Пробуем найти card.json на разных basket-* серверах
-    const cardData = await fetchCardJson(nmId);
-    if (!cardData) {
-      return res.status(404).json({ error: 'WB card.json not found' });
+    const productUrl = `https://www.wildberries.ru/catalog/${nmId}/detail.aspx`;
+
+    // Тянем HTML страницы товара
+    const resp = await fetch(productUrl, {
+      headers: {
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122 Safari/537.36',
+      },
+    });
+
+    if (!resp.ok) {
+      return res.status(resp.status).json({ error: 'WB page fetch failed' });
     }
 
-    // Структура card.json может немного отличаться,
-    // поэтому аккуратно достаём поля.
-    const product = cardData?.data?.products?.[0] || cardData?.products?.[0] || cardData;
+    const html = await resp.text();
 
-    const dimensions = product?.dimensions || product?.dimensions_cm || {};
-    const lengthCm = dimensions.length || dimensions.L || null;
-    const widthCm = dimensions.width || dimensions.W || null;
-    const heightCm = dimensions.height || dimensions.H || null;
-
-    const subjectName =
-      product?.subject ||
-      product?.subjectName ||
-      product?.subj_name ||
-      null;
+    // Пытаемся найти главное изображение
+    const imageUrl = extractMainImageUrl(html, nmId);
 
     return res.status(200).json({
       nmId,
-      lengthCm,
-      widthCm,
-      heightCm,
-      subjectName,
+      productUrl,
+      imageUrl: imageUrl || null,
     });
   } catch (e) {
     console.error(e);
@@ -47,20 +44,19 @@ export default async function handler(req, res) {
   }
 }
 
-// Вытаскиваем nmId из ссылки вида
-// https://www.wildberries.ru/catalog/208285191/detail.aspx?... 
+// Вытаскиваем nmId из URL
 function extractNmId(rawUrl) {
   try {
     const u = new URL(rawUrl);
     const path = u.pathname || '';
 
-    // Ищем /catalog/553101632/...
+    // /catalog/553101632/detail.aspx
     const match = path.match(/\/catalog\/(\d+)/);
     if (match && match[1]) {
       return match[1];
     }
 
-    // Если вдруг формат другой — ищем просто длинное число в path
+    // На всякий случай ищем любое длинное число
     const digitsMatch = path.match(/(\d{6,})/);
     if (digitsMatch && digitsMatch[1]) {
       return digitsMatch[1];
@@ -70,47 +66,38 @@ function extractNmId(rawUrl) {
   } catch {
     return null;
   }
-}// Получаем card.json, перебирая basket-сервера
-async function fetchCardJson(nmId) {
-  const article = String(nmId);
-  const part = article.slice(0, -3);   // все кроме последних 3 цифр
-  const vol = article.slice(0, -5);    // все кроме последних 5 цифр
+}
 
-  // Список basket-* по мотивам парсеров (0X и 14) [web:962]
-  const baskets = [
-    '01',
-    '02',
-    '03',
-    '04',
-    '05',
-    '06',
-    '07',
-    '08',
-    '09',
-    '10',
-    '11',
-    '12',
-    '13',
-    '14',
-  ];
+// Грубый парсер главного изображения из HTML
+function extractMainImageUrl(html, nmId) {
+  if (!html) return null;
 
-  for (const b of baskets) {
-    const host = b === '14' ? 'basket-14' : `basket-0${b}`;
-    const url = `https://${host}.wbbasket.ru/vol${vol}/part${part}/${article}/info/ru/card.json`;
+  // 1) ищем img с ссылкой на wbcontent/wbbasket
+  let match =
+    html.match(/<img[^>]+src="([^"]+?(?:wbcontent|wbbasket)[^"]+)"/i) ||
+    html.match(/"zoomImage":"([^"]+?wbcontent[^"]+)"/i) ||
+    html.match(/"image":"([^"]+?wbcontent[^"]+)"/i);
 
-    try {
-      const resp = await fetch(url);
-      if (!resp.ok) continue;
-      const data = await resp.json();
-      // Простейшая проверка, что это нужная карточка
-      if (data && Object.keys(data).length > 0) {
-        return data;
-      }
-    } catch (e) {
-      // Просто пробуем следующий basket
-      continue;
-    }
+  if (match && match[1]) {
+    return normalizeImageUrl(match[1]);
+  }
+
+  // 2) fallback: ищем любой URL с nmId и .jpg/.jpeg/.png/.webp
+  match = html.match(
+    new RegExp(`https?://[^"']*${nmId}[^"']*\\.(?:jpg|jpeg|png|webp)`, 'i')
+  );
+  if (match && match[0]) {
+    return match[0];
   }
 
   return null;
+}
+
+function normalizeImageUrl(src) {
+  // Если относительный путь — можно дополнительно прикрутить домен,
+  // но на WB обычно уже абсолютные ссылки https://...
+  if (src.startsWith('//')) {
+    return 'https:' + src;
+  }
+  return src;
 }
