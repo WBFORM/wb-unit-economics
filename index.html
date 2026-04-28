@@ -2,1691 +2,235 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <title>Калькулятор юнит‑экономики Wildberries</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Калькулятор упаковки WB</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    * {
-      box-sizing: border-box;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    }
-
     body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       margin: 0;
       padding: 20px;
-      background: #eef1f7;
-      color: #222;
+      background: #f5f5f5;
     }
-
-    .app-shell {
-      max-width: 1200px;
+    .container {
+      max-width: 900px;
       margin: 0 auto;
-    }
-
-    .app-header {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      align-items: flex-end;
-      gap: 8px;
-      margin-bottom: 16px;
-    }
-
-    .app-title {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-
-    .app-title-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .badge-beta {
-      font-size: 11px;
-      padding: 2px 8px;
-      border-radius: 999px;
-      background: #f97316;
-      color: #fff;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-
-    .app-title h1 {
-      font-size: 22px;
-      margin: 0;
-    }
-
-    .app-title .subtitle {
-      font-size: 13px;
-      color: #555;
-    }
-
-    .app-meta {
-      font-size: 12px;
-      color: #777;
-      text-align: right;
-    }
-
-    .app-meta a {
-      color: #4f46e5;
-      text-decoration: none;
-    }
-
-    .app-meta a:hover {
-      text-decoration: underline;
-    }
-
-    .layout-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 2fr) minmax(0, 2fr);
-      gap: 16px;
-    }
-
-    @media (max-width: 900px) {
-      .layout-grid {
-        grid-template-columns: minmax(0, 1fr);
-      }
-    }
-
-    .card {
       background: #fff;
-      border-radius: 14px;
-      padding: 14px 16px 16px;
-      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
-      border: 1px solid rgba(148, 163, 184, 0.3);
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
     }
-
-    .card-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      margin-bottom: 10px;
+    h1 {
+      margin-top: 0;
+      font-size: 24px;
     }
-
-    .card-title {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 15px;
-      font-weight: 600;
-      color: #111827;
-    }
-
-    .card-title span.icon {
-      font-size: 18px;
-    }
-
-    .card-subtitle {
-      font-size: 11px;
-      color: #6b7280;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 10px 16px;
-      margin-bottom: 4px;
-    }
-
     .field {
-      display: flex;
-      flex-direction: column;
-      min-width: 0;
+      margin-bottom: 12px;
     }
-
-    .field label {
-      font-size: 13px;
-      margin-bottom: 3px;
-      color: #374151;
-    }
-
-    .field small {
-      font-size: 11px;
-      color: #9ca3af;
-      margin-bottom: 3px;
-    }
-
-    .field input {
-      padding: 7px 9px;
-      border-radius: 8px;
-      border: 1px solid #d1d5db;
-      font-size: 13px;
-      outline: none;
-      transition: border-color 0.15s, box-shadow 0.15s, background-color 0.15s;
-      background: #f9fafb;
-      width: 100%;
-    }
-
-    .field input:focus {
-      border-color: #4f46e5;
-      box-shadow: 0 0 0 1px rgba(79, 70, 229, 0.2);
-      background: #ffffff;
-    }
-
-    .inline-suffix {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .inline-suffix span {
-      font-size: 12px;
-      color: #6b7280;
-      white-space: nowrap;
-    }
-
-    .section-divider {
-      margin: 10px 0;
-      border-bottom: 1px dashed #d1d5db;
-    }
-
-    .actions-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 10px;
-    }
-
-    button {
-      padding: 8px 14px;
-      border-radius: 999px;
-      border: none;
-      font-size: 13px;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      transition: background-color 0.15s, box-shadow 0.15s, transform 0.05s;
-      white-space: nowrap;
-    }
-
-    button:active {
-      transform: translateY(1px);
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, #4f46e5, #6366f1);
-      color: #fff;
-      box-shadow: 0 8px 16px rgba(79, 70, 229, 0.35);
-    }
-
-    .btn-primary:hover {
-      background: linear-gradient(135deg, #4338ca, #4f46e5);
-    }
-
-    .btn-secondary {
-      background: #e5e7eb;
-      color: #111827;
-    }
-
-    .btn-secondary:hover {
-      background: #d1d5db;
-    }
-
-    .btn-ghost {
-      background: transparent;
-      color: #4b5563;
-      border: 1px dashed #d1d5db;
-    }
-
-    .btn-ghost:hover {
-      background: #f3f4f6;
-    }
-
-    .results-block {
-      margin-top: 6px;
-      border-radius: 10px;
-      background: #f3f4ff;
-      padding: 10px 11px;
-      border: 1px solid rgba(129, 140, 248, 0.4);
-    }
-
-    .results-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 8px 16px;
-    }
-
-    .result-item {
-      font-size: 13px;
-      color: #111827;
-    }
-
-    .result-item-label {
-      color: #6b7280;
-      font-size: 12px;
-    }
-
-    .result-item-value {
-      font-weight: 600;
-    }
-
-    .status-box {
-      margin-top: 8px;
-      padding: 8px 10px;
-      border-radius: 8px;
-      font-size: 13px;
-      display: flex;
-      align-items: flex-start;
-      gap: 6px;
-    }
-
-    .status-box.good {
-      background: #ecfdf3;
-      color: #166534;
-      border: 1px solid #bbf7d0;
-    }
-
-    .status-box.bad {
-      background: #fef2f2;
-      color: #b91c1c;
-      border: 1px solid #fecaca;
-    }
-
-    .status-box.neutral {
-      background: #f9fafb;
-      color: #374151;
-      border: 1px solid #e5e7eb;
-    }
-
-    .status-icon {
-      font-size: 16px;
-      line-height: 1;
-      margin-top: 1px;
-    }
-
-    .status-text {
-      flex: 1;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 8px;
-      font-size: 12px;
-    }
-
-    th, td {
-      border: 1px solid #e5e7eb;
-      padding: 4px 6px;
-      text-align: right;
-    }
-
-    th {
-      background: #f3f4f6;
-      font-weight: 600;
-      color: #374151;
-    }
-
-    td:first-child,
-    th:first-child {
-      text-align: left;
-    }
-
-    .history-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 6px;
-    }
-
-    .history-header-title {
-      font-size: 13px;
+    label {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 14px;
       font-weight: 500;
-      color: #111827;
-      display: flex;
-      align-items: center;
-      gap: 6px;
     }
-
-    .history-header-subtitle {
-      font-size: 11px;
-      color: #9ca3af;
+    input, select, button {
+      font-size: 14px;
+      padding: 8px 10px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      width: 100%;
+      box-sizing: border-box;
     }
-
-    @media (max-width: 600px) {
-      body {
-        padding: 12px 8px;
-      }
-
-      .card {
-        padding: 12px 12px 14px;
-      }
-
-      .actions-row {
-        flex-direction: column;
-        align-items: stretch;
-      }
-
-      button {
-        justify-content: center;
-        width: 100%;
-      }
-    }
-
-    /* ---------- КОМБОБОКСЫ ---------- */
-
-    .combobox {
-      position: relative;
-      display: flex;
-      align-items: center;
-    }
-
-    .combobox-input {
-      flex: 1;
-      padding-right: 28px;
-    }
-
-    .combobox-arrow {
-      position: absolute;
-      right: 8px;
-      pointer-events: none;
-      font-size: 11px;
-      color: #6b7280;
-    }
-
-    .combobox-list {
-      position: absolute;
-      z-index: 20;
-      top: 100%;
-      left: 0;
-      right: 0;
-      margin-top: 4px;
-      max-height: 220px;
-      overflow-y: auto;
-      background: #ffffff;
-      border-radius: 10px;
-      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.18);
-      border: 1px solid #e5e7eb;
-      padding: 4px 0;
-      display: none;
-    }
-
-    .combobox-option {
-      padding: 6px 10px;
-      font-size: 13px;
+    button {
+      width: auto;
       cursor: pointer;
-      color: #111827;
+      background: #4f46e5;
+      color: #fff;
+      border-color: #4f46e5;
+    }
+    button:disabled {
+      opacity: 0.6;
+      cursor: default;
+    }
+    .row {
       display: flex;
-      justify-content: space-between;
-      gap: 6px;
+      gap: 12px;
     }
-
-    .combobox-option span.meta {
-      font-size: 11px;
-      color: #9ca3af;
+    .row .field {
+      flex: 1;
     }
-
-    .combobox-option:hover {
-      background: #eef2ff;
-    }
-
-    .combobox-option.is-active {
-      background: #e0e7ff;
-    }
-
-    .categories-status {
-      font-size: 11px;
-      color: #9ca3af;
-      margin-top: 2px;
-      min-height: 13px;
-    }
-
-    .toggle-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-top: 6px;
+    .hint {
       font-size: 12px;
-      color: #4b5563;
+      color: #666;
     }
-
-    .toggle-row input[type="checkbox"] {
-      width: 16px;
-      height: 16px;
+    .status {
+      margin-top: 8px;
+      font-size: 13px;
     }
-
-    .help-links {
-      margin-top: 4px;
-      font-size: 11px;
+    .status.error {
+      color: #b91c1c;
     }
-
-    .help-links a {
-      color: #4f46e5;
-      text-decoration: none;
-    }
-
-    .help-links a:hover {
-      text-decoration: underline;
+    .status.success {
+      color: #15803d;
     }
   </style>
 </head>
 <body>
-  <div class="app-shell">
-    <header class="app-header">
-      <div class="app-title">
-        <div class="app-title-row">
-          <h1>Юнит‑экономика Wildberries</h1>
-          <span class="badge-beta">beta</span>
-        </div>
-        <div class="subtitle">Калькулятор логистики, комиссии и маржи WB, актуален на 01.05.2026.</div>
+  <div class="container">
+    <h1>Калькулятор упаковки для WB</h1>
+
+    <!-- Ссылка на товар WB -->
+    <div class="field">
+      <label for="productUrl">Ссылка на товар Wildberries</label>
+      <input id="productUrl" type="text" placeholder="https://www.wildberries.ru/catalog/208285191/detail.aspx" />
+      <div class="hint">Вставьте ссылку на товар с сайта WB и нажмите кнопку ниже.</div>
+    </div>
+
+    <div class="field">
+      <button type="button" id="btnWbAutofill">Подтянуть данные с WB</button>
+      <div id="wbStatus" class="status"></div>
+    </div>
+
+    <hr />
+
+    <!-- Габариты -->
+    <div class="row">
+      <div class="field">
+        <label for="lengthCm">Длина, см</label>
+        <input id="lengthCm" type="number" step="0.1" />
       </div>
-      <div class="app-meta">
-        <div>v1.7 · расчёт в браузере, без передачи данных</div>
-        <div>Обратная связь: <a href="https://t.me/Denidevil" target="_blank" rel="noopener noreferrer">@Denidevil</a></div>
+      <div class="field">
+        <label for="widthCm">Ширина, см</label>
+        <input id="widthCm" type="number" step="0.1" />
       </div>
-    </header>
-
-    <div class="layout-grid">
-      <!-- Левая колонка: товар + логистика -->
-      <div class="left-column">
-        <!-- Блок 1: Товар -->
-        <section class="card" id="card-product">
-          <div class="card-header">
-            <div>
-              <div class="card-title">
-                <span class="icon">📦</span>
-                <span>1. Карточка товара</span>
-              </div>
-              <div class="card-subtitle">
-                Выберите категорию WB и заполните основные параметры.
-              </div>
-            </div>
-          </div>
-
-          <div class="grid">
-            <div class="field">
-              <label for="parentCategoryInput">Родительская категория</label>
-              <small>Например: Одежда, Обувь, Товары для дома</small>
-              <div class="combobox">
-                <input
-                  type="text"
-                  id="parentCategoryInput"
-                  class="combobox-input"
-                  placeholder="Начните вводить родительскую категорию"
-                  autocomplete="off"
-                />
-                <div class="combobox-arrow">▾</div>
-                <div class="combobox-list" id="parentCategoryList"></div>
-              </div>
-              <div class="categories-status" id="parentCategoriesStatus"></div>
-            </div>
-
-            <div class="field">
-              <label for="categoryInput">Категория товара</label>
-              <small>Можно искать по первым буквам, фильтр учитывает выбранного родителя</small>
-              <div class="combobox">
-                <input
-                  type="text"
-                  id="categoryInput"
-                  class="combobox-input"
-                  placeholder="Начните вводить категорию WB"
-                  autocomplete="off"
-                />
-                <div class="combobox-arrow">▾</div>
-                <div class="combobox-list" id="categoryList"></div>
-              </div>
-              <div class="categories-status" id="categoriesStatus"></div>
-            </div>
-          </div>
-
-          <div class="grid">
-            <div class="field">
-              <label for="productName">Название товара</label>
-              <small>Произвольное имя для удобства</small>
-              <input type="text" id="productName" placeholder="например, Худи мужская" />
-            </div>
-
-            <div class="field">
-              <label for="productUrl">Ссылка на товар (свой или аналог)</label>
-              <small>Необязательно, для удобства в истории и CSV</small>
-              <input type="text" id="productUrl" placeholder="https://www.wildberries.ru/catalog/..." />
-            </div>
-          </div>
-
-          <div class="grid">
-            <div class="field">
-              <label for="price">Цена продажи (до СПП), ₽</label>
-              <small>Цена на витрине без скидки/СПП</small>
-              <input type="number" id="price" placeholder="например, 1500" step="0.01" />
-            </div>
-
-            <div class="field">
-              <label for="sppPercent">СПП / скидка, %</label>
-              <small>Для отображения цены для покупателя</small>
-              <div class="inline-suffix">
-                <input type="number" id="sppPercent" placeholder="например, 10" step="0.01" />
-                <span>%</span>
-              </div>
-            </div>
-
-            <div class="field">
-              <label for="purchase">Закупочная цена, ₽</label>
-              <small>Себестоимость одной единицы</small>
-              <input type="number" id="purchase" placeholder="например, 500" step="0.01" />
-            </div>
-          </div>
-        </section>
-
-        <!-- Блок 2: Логистика -->
-        <section class="card" id="card-logistics">
-          <div class="card-header">
-            <div>
-              <div class="card-title">
-                <span class="icon">🚚</span>
-                <span>2. Логистика и габариты</span>
-              </div>
-              <div class="card-subtitle">
-                Склад, габариты и индексные настройки WB.
-              </div>
-            </div>
-          </div>
-
-          <div class="grid">
-            <div class="field">
-              <label for="warehouseInput">Склад отгрузки</label>
-              <small>Начните вводить или выберите из списка</small>
-              <div class="combobox">
-                <input
-                  type="text"
-                  id="warehouseInput"
-                  class="combobox-input"
-                  placeholder="Например, Коледино, Электросталь..."
-                  autocomplete="off"
-                />
-                <div class="combobox-arrow">▾</div>
-                <div class="combobox-list" id="warehouseList"></div>
-              </div>
-            </div>
-          </div>
-
-          <div class="toggle-row">
-            <input type="checkbox" id="useLocalization" checked />
-            <label for="useLocalization">Учитывать ИЛ и ИРП в логистике</label>
-          </div>
-
-          <div class="field" style="margin-top:6px;">
-            <button type="button" class="btn-ghost" id="toggleLocalization">
-              ⚙️ Настройки локализации (ИЛ / ИРП)
-            </button>
-          </div>
-
-          <div id="localizationSettings" style="display:none; margin-top:8px;">
-            <div class="grid">
-              <div class="field">
-                <label for="ilValue">Индекс локализации (ИЛ)</label>
-                <small>По умолчанию 1. Смотреть в ЛК: Тарифы → Индекс локализации.</small>
-                <input type="number" id="ilValue" placeholder="1" step="0.01" />
-              </div>
-
-              <div class="field">
-                <label for="irpValue">Индекс распределения продаж (ИРП), %</label>
-                <small>По умолчанию 1%. Смотреть в ЛК: Тарифы → Индекс распределения продаж.</small>
-                <input type="number" id="irpValue" placeholder="1" step="0.01" />
-              </div>
-            </div>
-            <div class="help-links">
-              <span>Подробнее: </span>
-              <a href="https://seller.wildberries.ru/instructions/ru/ru/material/localization-index" target="_blank" rel="noopener noreferrer">
-                инструкция по ИЛ
-              </a>
-              <span> · </span>
-              <a href="https://seller.wildberries.ru/instructions/ru/ru/material/sales-distribution-index" target="_blank" rel="noopener noreferrer">
-                инструкция по ИРП
-              </a>
-            </div>
-          </div>
-
-          <div class="section-divider"></div>
-
-          <div class="grid">
-            <div class="field">
-              <label for="lengthCm">Длина, см</label>
-              <small>Размер товара в упаковке</small>
-              <input type="number" id="lengthCm" placeholder="например, 30" step="0.01" />
-            </div>
-
-            <div class="field">
-              <label for="widthCm">Ширина, см</label>
-              <small>Размер товара в упаковке</small>
-              <input type="number" id="widthCm" placeholder="например, 20" step="0.01" />
-            </div>
-
-            <div class="field">
-              <label for="heightCm">Высота, см</label>
-              <small>Размер товара в упаковке</small>
-              <input type="number" id="heightCm" placeholder="например, 10" step="0.01" />
-            </div>
-          </div>
-        </section>
-      </div>
-
-      <!-- Правая колонка: расходы + результаты -->
-      <div class="right-column">
-        <!-- Блок 3: Расходы -->
-        <section class="card" id="card-costs">
-          <div class="card-header">
-            <div>
-              <div class="card-title">
-                <span class="icon">💸</span>
-                <span>3. Расходы и выкуп</span>
-              </div>
-              <div class="card-subtitle">
-                Реклама, прочие расходы, налог, эквайринг, выкуп.
-              </div>
-            </div>
-          </div>
-
-          <div class="grid">
-            <div class="field">
-              <label for="adsPercent">Рекламные расходы (ДРР), %</label>
-              <small>От цены до СПП</small>
-              <div class="inline-suffix">
-                <input type="number" id="adsPercent" placeholder="например, 10" step="0.01" />
-                <span>%</span>
-              </div>
-            </div>
-
-            <div class="field">
-              <label for="otherCosts">Прочие переменные расходы, ₽</label>
-              <small>Упаковка, доп. услуги и т.п.</small>
-              <input type="number" id="otherCosts" placeholder="например, 30" step="0.01" />
-            </div>
-
-            <div class="field">
-              <label for="buyoutRate">Процент выкупа, %</label>
-              <small>Например, 80 = 80% выкупа</small>
-              <div class="inline-suffix">
-                <input type="number" id="buyoutRate" placeholder="например, 80" step="0.01" />
-                <span>%</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="section-divider"></div>
-
-          <div class="grid">
-            <div class="field">
-              <label for="taxPercent">Налог, %</label>
-              <small>Например, УСН 6% от прибыли</small>
-              <div class="inline-suffix">
-                <input type="number" id="taxPercent" placeholder="например, 6" step="0.01" />
-                <span>%</span>
-              </div>
-            </div>
-
-            <div class="field">
-              <label for="acquiringPercent">Эквайринг, %</label>
-              <small>От цены до СПП</small>
-              <div class="inline-suffix">
-                <input type="number" id="acquiringPercent" placeholder="например, 1.5" step="0.01" />
-                <span>%</span>
-              </div>
-            </div>
-
-            <div class="field">
-              <label for="targetMargin">Целевая маржа, %</label>
-              <small>Для расчёта минимальной цены</small>
-              <div class="inline-suffix">
-                <input type="number" id="targetMargin" placeholder="например, 20" step="0.01" />
-                <span>%</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="actions-row">
-            <button class="btn-primary" onclick="calculate()">
-              🔢 Рассчитать
-            </button>
-            <button class="btn-secondary" onclick="resetForm()">
-              ♻️ Сбросить
-            </button>
-            <button class="btn-ghost" onclick="saveToTable()">
-              💾 Сохранить в историю
-            </button>
-            <button class="btn-ghost" onclick="exportToCSV()">
-              ⬇️ Экспорт в CSV
-            </button>
-          </div>
-        </section>
-
-        <!-- Блок 4: Результаты -->
-        <section class="card" id="card-results">
-          <div class="card-header">
-            <div>
-              <div class="card-title">
-                <span class="icon">📊</span>
-                <span>4. Итоги расчёта</span>
-              </div>
-              <div class="card-subtitle">
-                Чистая прибыль и маржа с учётом всех переменных расходов.
-              </div>
-            </div>
-          </div>
-
-          <div id="results" style="display:none;">
-            <div class="results-block">
-              <div class="results-grid">
-                <div class="result-item">
-                  <div class="result-item-label">Цена продажи (до СПП)</div>
-                  <div class="result-item-value">
-                    <span id="priceBeforeSppValue"></span> ₽
-                  </div>
-                </div>
-
-                <div class="result-item">
-                  <div class="result-item-label">Цена с СПП (для покупателя)</div>
-                  <div class="result-item-value">
-                    <span id="priceForBuyerValue"></span> ₽
-                  </div>
-                </div>
-
-                <div class="result-item">
-                  <div class="result-item-label">Комиссия маркетплейса</div>
-                  <div class="result-item-value">
-                    <span id="feeValue"></span> ₽
-                    (<span id="feeShare"></span>%)
-                  </div>
-                </div>
-
-                <div class="result-item">
-                  <div class="result-item-label">Логистика на один выкуп</div>
-                  <div class="result-item-value">
-                    <span id="logisticsValue"></span> ₽
-                    (<span id="logisticsShare"></span>%)
-                  </div>
-                </div>
-
-                <div class="result-item">
-                  <div class="result-item-label">Реклама (ДРР)</div>
-                  <div class="result-item-value">
-                    <span id="adsValue"></span> ₽
-                    (<span id="adsShare"></span>%)
-                  </div>
-                </div>
-
-                <div class="result-item">
-                  <div class="result-item-label">Прочие расходы (эквайринг + налог + прочие)</div>
-                  <div class="result-item-value">
-                    <span id="otherGroupValue"></span> ₽
-                    (<span id="otherGroupShare"></span>%)
-                  </div>
-                </div>
-
-                <div class="result-item">
-                  <div class="result-item-label">Закупочная цена</div>
-                  <div class="result-item-value">
-                    <span id="purchaseValue"></span> ₽
-                    (<span id="purchaseShare"></span>%)
-                  </div>
-                </div>
-
-                <div class="result-item">
-                  <div class="result-item-label">Полные переменные затраты</div>
-                  <div class="result-item-value">
-                    <span id="totalCostValue"></span> ₽
-                  </div>
-                </div>
-
-                <div class="result-item">
-                  <div class="result-item-label">Прибыль на единицу</div>
-                  <div class="result-item-value">
-                    <span id="profitValue"></span> ₽
-                  </div>
-                </div>
-
-                <div class="result-item">
-                  <div class="result-item-label">Маржа</div>
-                  <div class="result-item-value">
-                    <span id="marginValue"></span> %
-                  </div>
-                </div>
-
-                <div class="result-item">
-                  <div class="result-item-label">Минимальная цена при целевой марже</div>
-                  <div class="result-item-value">
-                    <span id="minPriceValue"></span> ₽
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="status-box" id="statusBox">
-              <div class="status-icon">ℹ️</div>
-              <div class="status-text"></div>
-            </div>
-          </div>
-        </section>
+      <div class="field">
+        <label for="heightCm">Высота, см</label>
+        <input id="heightCm" type="number" step="0.1" />
       </div>
     </div>
 
-    <!-- Блок 5: История расчётов -->
-    <section class="card" id="card-history" style="margin-top:16px; display:none;">
-      <div class="card-header">
-        <div>
-          <div class="card-title">
-            <span class="icon">📚</span>
-            <span>5. История расчётов</span>
-          </div>
-          <div class="card-subtitle">
-            Короткий срез по ключевым показателям для сравнения сценариев.
-          </div>
-        </div>
+    <!-- Категория -->
+    <div class="row">
+      <div class="field">
+        <label for="parentCategory">Родительская категория</label>
+        <input id="parentCategory" type="text" />
       </div>
-
-      <div class="history-header">
-        <div class="history-header-title">
-          <span>Сохранённые расчёты</span>
-        </div>
-        <div class="history-header-subtitle">
-          Данные сохраняются только в текущей вкладке браузера.
-        </div>
+      <div class="field">
+        <label for="category">Категория</label>
+        <input id="category" type="text" />
       </div>
+    </div>
 
-      <table id="resultsTable">
-        <thead>
-          <tr>
-            <th>Дата</th>
-            <th>Товар</th>
-            <th>Цена до СПП, ₽</th>
-            <th>Цена с СПП, ₽</th>
-            <th>Расходы маркетплейса, ₽</th>
-            <th>Прочие расходы, ₽</th>
-            <th>Закупка, ₽</th>
-            <th>Чистая прибыль, ₽</th>
-            <th>Маржа, %</th>
-            <th>Мин. цена (цел. маржа)</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </section>
+    <div class="field">
+      <div class="hint">
+        Ниже можешь оставить свой старый функционал калькулятора (расчёты по категориям / ГТД и т.п.).
+      </div>
+    </div>
   </div>
 
   <script>
-    let lastCalculation = null;
-    let historyData = [];
+    let categoriesCache = null;
+    let categoriesLoaded = false;
 
-    let categories = [];
-    let parentCategories = [];
-    let filteredCategories = [];
-    let warehouses = [];
-    let filteredWarehouses = [];
+    document.getElementById('btnWbAutofill').addEventListener('click', autofillFromWbUrl);
 
-    let selectedParentCategory = null;
-    let selectedCategory = null;
-    let selectedWarehouse = null;
-    let currentFeePercent = 0;
+    async function autofillFromWbUrl() {
+      const statusEl = document.getElementById('wbStatus');
+      const btn = document.getElementById('btnWbAutofill');
+      const urlInput = document.getElementById('productUrl');
+      const wbUrl = urlInput.value.trim();
 
-    function toNumber(value) {
-      const n = parseFloat((value || '').toString().replace(',', '.'));
-      return isNaN(n) ? 0 : n;
-    }
+      statusEl.textContent = '';
+      statusEl.className = 'status';
 
-    function getTariffPerLiter(V_l) {
-      if (V_l <= 0) return 0;
-      if (V_l <= 0.200) return 23;
-      if (V_l <= 0.400) return 26;
-      if (V_l <= 0.600) return 29;
-      if (V_l <= 0.800) return 30;
-      if (V_l <= 1.000) return 32;
-      return null;
-    }
-
-    function formatDateShort(d) {
-      const day = String(d.getDate()).padStart(2, '0');
-      const month = String(d.getMonth() + 1).padStart(2, '0');
-      const year = String(d.getFullYear()).slice(-2);
-      return `${day}.${month}.${year}`;
-    }
-
-    /* ---------- СКЛАДЫ: КОМБОБОКС ---------- */
-
-    let warehouseSearchTimer = null;
-
-    function initWarehouses() {
-      const input = document.getElementById('warehouseInput');
-      const listEl = document.getElementById('warehouseList');
-      if (!input || !listEl) return;
-
-      filteredWarehouses = [...warehouses];
-      renderWarehouseList();
-
-      input.addEventListener('focus', () => {
-        showWarehouseList();
-      });
-
-      input.addEventListener('click', () => {
-        toggleWarehouseList();
-      });
-
-      input.addEventListener('input', e => {
-        clearTimeout(warehouseSearchTimer);
-        const value = e.target.value;
-        warehouseSearchTimer = setTimeout(() => {
-          filterWarehouses(value);
-          showWarehouseList();
-        }, 150);
-      });
-
-      document.addEventListener('click', e => {
-        if (!input.closest('.combobox')?.contains(e.target)) {
-          hideWarehouseList();
-        }
-      });
-    }
-
-    function renderWarehouseList() {
-      const listEl = document.getElementById('warehouseList');
-      if (!listEl) return;
-
-      listEl.innerHTML = '';
-
-      if (!filteredWarehouses || filteredWarehouses.length === 0) {
-        const empty = document.createElement('div');
-        empty.className = 'combobox-option';
-        empty.textContent = 'Ничего не найдено';
-        listEl.appendChild(empty);
+      if (!wbUrl) {
+        statusEl.textContent = 'Введите ссылку на товар WB.';
+        statusEl.classList.add('error');
         return;
       }
 
-      filteredWarehouses.forEach(w => {
-        const opt = document.createElement('div');
-        opt.className = 'combobox-option';
-        opt.dataset.name = w.name;
-        opt.innerHTML = `
-          <span>${w.name}</span>
-          <span class="meta">${w.coef != null ? 'Коэф. ' + w.coef : ''}</span>
-        `;
+      btn.disabled = true;
+      statusEl.textContent = 'Получаем данные с WB...';
 
-        opt.addEventListener('click', () => {
-          const input = document.getElementById('warehouseInput');
-          if (!input) return;
+      try {
+        const resp = await fetch(`/api/wb-card?url=${encodeURIComponent(wbUrl)}`);
+        const data = await resp.json();
 
-          input.value = w.name;
-          selectedWarehouse = w;
-
-          hideWarehouseList();
-        });
-
-        listEl.appendChild(opt);
-      });
-    }
-
-    function filterWarehouses(queryRaw) {
-      const query = (queryRaw || '').toLowerCase();
-      if (!query) {
-        filteredWarehouses = [...warehouses];
-      } else {
-        filteredWarehouses = warehouses.filter(w =>
-          w.name.toLowerCase().includes(query)
-        );
-      }
-      renderWarehouseList();
-    }
-
-    function showWarehouseList() {
-      const listEl = document.getElementById('warehouseList');
-      if (!listEl) return;
-      listEl.style.display = 'block';
-    }
-
-    function hideWarehouseList() {
-      const listEl = document.getElementById('warehouseList');
-      if (!listEl) return;
-      listEl.style.display = 'none';
-    }
-
-    function toggleWarehouseList() {
-      const listEl = document.getElementById('warehouseList');
-      if (!listEl) return;
-      listEl.style.display = listEl.style.display === 'block' ? 'none' : 'block';
-    }
-
-    /* ---------- КАТЕГОРИИ: РОДИТЕЛЬ + КОМБОБОКС + ПОИСК ---------- */
-
-    let categorySearchTimer = null;
-    let parentSearchTimer = null;
-
-    function buildParentCategoriesFromData() {
-      const parentsSet = new Set();
-      categories.forEach(c => {
-        if (c && c.parent) {
-          parentsSet.add(String(c.parent).trim());
+        if (!resp.ok) {
+          console.error('API error', data);
+          statusEl.textContent = data.error || 'Не удалось подтянуть данные с WB.';
+          statusEl.classList.add('error');
+          return;
         }
-      });
-      parentCategories = Array.from(parentsSet).sort((a, b) =>
-        a.localeCompare(b, 'ru')
-      );
+
+        // Заполняем габариты, если есть
+        if (data.lengthCm) document.getElementById('lengthCm').value = data.lengthCm;
+        if (data.widthCm) document.getElementById('widthCm').value = data.widthCm;
+        if (data.heightCm) document.getElementById('heightCm').value = data.heightCm;
+
+        // Пытаемся подобрать категорию
+        if (data.subjectName) {
+          await autofillCategoryBySubject(data.subjectName);
+        }
+
+        statusEl.textContent = `Данные подгружены. Артикул: ${data.nmId}${data.subjectName ? ', категория WB: ' + data.subjectName : ''}`;
+        statusEl.classList.add('success');
+      } catch (e) {
+        console.error(e);
+        statusEl.textContent = 'Ошибка при обращении к API.';
+        statusEl.classList.add('error');
+      } finally {
+        btn.disabled = false;
+      }
     }
 
-    function renderParentList(filterQuery) {
-      const parentInput = document.getElementById('parentCategoryInput');
-      const parentListEl = document.getElementById('parentCategoryList');
-      const parentStatus = document.getElementById('parentCategoriesStatus');
-      if (!parentInput || !parentListEl) return;
+    async function loadCategoriesOnce() {
+      if (categoriesLoaded) return;
+      try {
+        const resp = await fetch('/categories.json');
+        if (!resp.ok) {
+          console.warn('Не удалось загрузить categories.json');
+          categoriesLoaded = true;
+          categoriesCache = [];
+          return;
+        }
+        categoriesCache = await resp.json();
+        categoriesLoaded = true;
+      } catch (e) {
+        console.error('Ошибка загрузки categories.json', e);
+        categoriesLoaded = true;
+        categoriesCache = [];
+      }
+    }
 
-      const q = (filterQuery || '').toLowerCase();
-      const base = parentCategories || [];
-      const toShow = q
-        ? base.filter(p => p.toLowerCase().includes(q))
-        : base;
+    async function autofillCategoryBySubject(subjectName) {
+      await loadCategoriesOnce();
+      if (!categoriesCache || categoriesCache.length === 0) return;
 
-      parentListEl.innerHTML = '';
+      const lower = subjectName.toLowerCase();
 
-      if (toShow.length === 0) {
-        const empty = document.createElement('div');
-        empty.className = 'combobox-option';
-        empty.textContent = 'Ничего не найдено';
-        parentListEl.appendChild(empty);
-      } else {
-        toShow.forEach(parentName => {
-          const opt = document.createElement('div');
-          opt.className = 'combobox-option';
-          opt.textContent = parentName;
+      // Простой поиск по точному совпадению wbSubject/subjectName в categories.json
+      let found = categoriesCache.find(c => {
+        if (c.wbSubject) return String(c.wbSubject).toLowerCase() === lower;
+        if (c.subjectName) return String(c.subjectName).toLowerCase() === lower;
+        return false;
+      });
 
-          opt.addEventListener('click', () => {
-            parentInput.value = parentName;
-            selectedParentCategory = parentName;
-
-            const catInput = document.getElementById('categoryInput');
-            if (catInput) catInput.value = '';
-            selectedCategory = null;
-            currentFeePercent = 0;
-            filterCategoriesForParent();
-            hideParentList();
-          });
-
-          parentListEl.appendChild(opt);
+      // Если нет точного совпадения — пробуем по вхождению
+      if (!found) {
+        found = categoriesCache.find(c => {
+          const name = (c.wbSubject || c.subjectName || c.name || '').toLowerCase();
+          return name && lower.includes(name);
         });
       }
 
-      if (parentStatus) {
-        parentStatus.textContent = '';
-      }
-    }
-
-    function initParentCategories() {
-      const parentInput = document.getElementById('parentCategoryInput');
-      if (!parentInput) return;
-
-      buildParentCategoriesFromData();
-      renderParentList('');
-
-      parentInput.addEventListener('focus', () => {
-        showParentList();
-      });
-
-      parentInput.addEventListener('click', () => {
-        toggleParentList();
-      });
-
-      parentInput.addEventListener('input', e => {
-        clearTimeout(parentSearchTimer);
-        const value = e.target.value;
-        parentSearchTimer = setTimeout(() => {
-          renderParentList(value);
-          showParentList();
-        }, 150);
-      });
-
-      document.addEventListener('click', e => {
-        if (!parentInput.closest('.combobox')?.contains(e.target)) {
-          hideParentList();
+      if (found) {
+        if (found.parent) {
+          document.getElementById('parentCategory').value = found.parent;
         }
-      });
-    }
-
-    function showParentList() {
-      const parentListEl = document.getElementById('parentCategoryList');
-      if (!parentListEl) return;
-      parentListEl.style.display = 'block';
-    }
-
-    function hideParentList() {
-      const parentListEl = document.getElementById('parentCategoryList');
-      if (!parentListEl) return;
-      parentListEl.style.display = 'none';
-    }
-
-    function toggleParentList() {
-      const parentListEl = document.getElementById('parentCategoryList');
-      if (!parentListEl) return;
-      parentListEl.style.display =
-        parentListEl.style.display === 'block' ? 'none' : 'block';
-    }
-
-    function initCategories() {
-      const input = document.getElementById('categoryInput');
-      const listEl = document.getElementById('categoryList');
-      const statusEl = document.getElementById('categoriesStatus');
-
-      if (!input || !listEl) return;
-
-      if (!categories || categories.length === 0) {
-        if (statusEl) {
-          statusEl.textContent = 'Категории не загружены (проверьте categories.json).';
-        }
-        return;
-      }
-
-      filteredCategories = [...categories];
-      renderCategoryList();
-
-      if (statusEl) {
-        statusEl.textContent = '';
-      }
-
-      input.addEventListener('focus', () => {
-        showCategoryList();
-      });
-
-      input.addEventListener('click', () => {
-        toggleCategoryList();
-      });
-
-      input.addEventListener('input', e => {
-        clearTimeout(categorySearchTimer);
-        const value = e.target.value;
-        categorySearchTimer = setTimeout(() => {
-          filterCategories(value);
-          showCategoryList();
-        }, 150);
-      });
-
-      document.addEventListener('click', e => {
-        if (!input.closest('.combobox')?.contains(e.target)) {
-          hideCategoryList();
-        }
-      });
-    }
-
-    function filterCategoriesForParent() {
-      if (!selectedParentCategory) {
-        filteredCategories = [...categories];
-      } else {
-        filteredCategories = categories.filter(cat =>
-          String(cat.parent).trim() === String(selectedParentCategory).trim()
-        );
-      }
-      renderCategoryList();
-    }
-
-    function renderCategoryList() {
-      const listEl = document.getElementById('categoryList');
-      if (!listEl) return;
-
-      listEl.innerHTML = '';
-
-      if (!filteredCategories || filteredCategories.length === 0) {
-        const empty = document.createElement('div');
-        empty.className = 'combobox-option';
-        empty.textContent = selectedParentCategory
-          ? 'Нет категорий в выбранной родительской группе'
-          : 'Ничего не найдено';
-        listEl.appendChild(empty);
-        return;
-      }
-
-      filteredCategories.forEach(cat => {
-        const opt = document.createElement('div');
-        opt.className = 'combobox-option';
-        opt.dataset.name = cat.name;
-        opt.innerHTML = `
-          <span>${cat.name}</span>
-          <span class="meta">${cat.fee != null ? cat.fee + ' %' : ''}</span>
-        `;
-
-        opt.addEventListener('click', () => {
-          const input = document.getElementById('categoryInput');
-          if (!input) return;
-
-          input.value = cat.name;
-          selectedCategory = cat;
-
-          if (typeof cat.fee !== 'undefined' && !isNaN(Number(cat.fee))) {
-            currentFeePercent = Number(cat.fee);
-          } else {
-            currentFeePercent = 0;
-          }
-
-          hideCategoryList();
-        });
-
-        listEl.appendChild(opt);
-      });
-    }
-
-    function filterCategories(queryRaw) {
-      const query = (queryRaw || '').toLowerCase();
-      let base = categories;
-
-      if (selectedParentCategory) {
-        base = categories.filter(cat =>
-          String(cat.parent).trim() === String(selectedParentCategory).trim()
-        );
-      }
-
-      if (!query) {
-        filteredCategories = base;
-      } else {
-        filteredCategories = base.filter(cat =>
-          cat.name.toLowerCase().includes(query)
-        );
-      }
-      renderCategoryList();
-    }
-
-    function showCategoryList() {
-      const listEl = document.getElementById('categoryList');
-      if (!listEl) return;
-      listEl.style.display = 'block';
-    }
-
-    function hideCategoryList() {
-      const listEl = document.getElementById('categoryList');
-      if (!listEl) return;
-      listEl.style.display = 'none';
-    }
-
-    function toggleCategoryList() {
-      const listEl = document.getElementById('categoryList');
-      if (!listEl) return;
-      listEl.style.display = listEl.style.display === 'block' ? 'none' : 'block';
-    }
-
-    /* ---------- ЗАГРУЗКА JSON + настройка локализации ---------- */
-
-    window.addEventListener('DOMContentLoaded', () => {
-      const categoriesStatus = document.getElementById('categoriesStatus');
-
-      const toggleBtn = document.getElementById('toggleLocalization');
-      const locBox = document.getElementById('localizationSettings');
-      if (toggleBtn && locBox) {
-        toggleBtn.addEventListener('click', () => {
-          const visible = locBox.style.display === 'block';
-          locBox.style.display = visible ? 'none' : 'block';
-        });
-      }
-
-      fetch('warehouses.json')
-        .then(response => {
-          if (!response.ok) throw new Error('HTTP ' + response.status);
-          return response.json();
-        })
-        .then(data => {
-          warehouses = data;
-          initWarehouses();
-        })
-        .catch(err => {
-          console.error('Ошибка загрузки warehouses.json:', err);
-        })
-        .finally(() => {
-          fetch('categories.json')
-            .then(response => {
-              if (!response.ok) throw new Error('HTTP ' + response.status);
-              return response.json();
-            })
-            .then(data => {
-              if (Array.isArray(data)) {
-                categories = data;
-              } else if (Array.isArray(data.data)) {
-                categories = data.data;
-              } else if (Array.isArray(data.categories)) {
-                categories = data.categories;
-              } else {
-                console.error('Не удалось найти массив категорий в JSON:', data);
-                categories = [];
-              }
-
-              initCategories();
-              initParentCategories();
-            })
-            .catch(err => {
-              console.error('Ошибка загрузки categories.json:', err);
-              if (categoriesStatus) {
-                categoriesStatus.textContent = 'Ошибка загрузки категорий (categories.json).';
-              }
-            });
-        });
-    });
-
-    /* ---------- РАСЧЁТ ---------- */
-
-    function calculate() {
-      const lengthCm = toNumber(document.getElementById('lengthCm').value);
-      const widthCm = toNumber(document.getElementById('widthCm').value);
-      const heightCm = toNumber(document.getElementById('heightCm').value);
-
-      const warehouseCoef = selectedWarehouse && !isNaN(Number(selectedWarehouse.coef))
-        ? Number(selectedWarehouse.coef)
-        : 1;
-
-      const useLocalization = document.getElementById('useLocalization')?.checked ?? true;
-
-      const ilRaw = toNumber(document.getElementById('ilValue').value);
-      const irpRaw = toNumber(document.getElementById('irpValue').value);
-      const ilValue = useLocalization ? (ilRaw > 0 ? ilRaw : 1) : 1;
-      const irpPercent = useLocalization ? (irpRaw > 0 ? irpRaw : 1) : 0;
-
-      const P = toNumber(document.getElementById('price').value);
-      const C_purchase = toNumber(document.getElementById('purchase').value);
-      const spp_percent = toNumber(document.getElementById('sppPercent').value);
-      const buyout_rate_percent = toNumber(document.getElementById('buyoutRate').value);
-      const ads_percent = toNumber(document.getElementById('adsPercent').value);
-      const other_costs = toNumber(document.getElementById('otherCosts').value);
-      const tax_percent = toNumber(document.getElementById('taxPercent').value);
-      const acquiring_percent = toNumber(document.getElementById('acquiringPercent').value);
-
-      const fee_percent = currentFeePercent || 0;
-
-      if (P <= 0) {
-        alert('Введите корректную цену продажи.');
-        return;
-      }
-
-      const P_for_buyer = P * (1 - spp_percent / 100);
-      const ads_per_sale = P * (ads_percent / 100);
-
-      let volume_l = 0;
-      if (lengthCm > 0 && widthCm > 0 && heightCm > 0) {
-        const volume_m3 = (lengthCm / 100) * (widthCm / 100) * (heightCm / 100);
-        volume_l = volume_m3 * 1000;
-      }
-
-      let C_ship_to = 0;
-      let C_ship_back = 0;
-
-      if (volume_l > 0) {
-        const tariffPerL = getTariffPerLiter(volume_l);
-        let C_fwd_base;
-        if (tariffPerL === null) {
-          if (volume_l <= 1) {
-            C_fwd_base = 46;
-          } else {
-            C_fwd_base = 46 + 14 * (volume_l - 1);
-          }
-        } else {
-          C_fwd_base = volume_l * tariffPerL;
-        }
-
-        const C_liters = C_fwd_base * warehouseCoef * ilValue;
-        const C_irp = P * (irpPercent / 100);
-        C_ship_to = C_liters + C_irp;
-
-        if (volume_l <= 1) {
-          C_ship_back = 46;
-        } else {
-          C_ship_back = 46 + 14 * (volume_l - 1);
+        if (found.name) {
+          document.getElementById('category').value = found.name;
         }
       }
-
-      const buyout_rate = Math.min(Math.max(buyout_rate_percent, 0), 100) / 100;
-
-      const C_fee = P * (fee_percent / 100);
-      const C_acq = P * (acquiring_percent / 100);
-
-      let C_logistics_per_unit;
-      if (buyout_rate > 0) {
-        C_logistics_per_unit =
-          C_ship_to / buyout_rate +
-          (C_ship_back * (1 - buyout_rate)) / buyout_rate;
-      } else {
-        C_logistics_per_unit = C_ship_to + C_ship_back;
-      }
-
-      const C_base_before_tax =
-        C_purchase +
-        C_logistics_per_unit +
-        C_fee +
-        C_acq +
-        ads_per_sale +
-        other_costs;
-
-      let Profit_before_tax = P - C_base_before_tax;
-      let C_tax = 0;
-      if (Profit_before_tax > 0 && tax_percent > 0) {
-        C_tax = Profit_before_tax * (tax_percent / 100);
-      }
-
-      const C_total = C_base_before_tax + C_tax;
-      const Profit = P - C_total;
-      const margin_percent = P > 0 ? (Profit / P) * 100 : 0;
-
-      let P_min = 0;
-      const target_margin_percent = toNumber(document.getElementById('targetMargin').value);
-      if (target_margin_percent > 0) {
-        const m = target_margin_percent / 100;
-        const k2 = (fee_percent + acquiring_percent + ads_percent + tax_percent) / 100;
-        const C_fixed = C_purchase + other_costs;
-        const C_log = C_logistics_per_unit;
-        const denom = 1 - k2 - m;
-        if (denom > 0) {
-          P_min = (C_fixed + C_log) / denom;
-        } else {
-          P_min = 0;
-        }
-      }
-
-      const C_other_group = C_acq + C_tax + other_costs;
-
-      const feeShare = P > 0 ? (C_fee / P) * 100 : 0;
-      const logShare = P > 0 ? (C_logistics_per_unit / P) * 100 : 0;
-      const adsShare = P > 0 ? (ads_per_sale / P) * 100 : 0;
-      const otherGroupShare = P > 0 ? (C_other_group / P) * 100 : 0;
-      const purchaseShare = P > 0 ? (C_purchase / P) * 100 : 0;
-
-      document.getElementById('results').style.display = 'block';
-      document.getElementById('priceBeforeSppValue').textContent = P.toFixed(2);
-      document.getElementById('priceForBuyerValue').textContent = P_for_buyer.toFixed(2);
-      document.getElementById('feeValue').textContent = C_fee.toFixed(2);
-      document.getElementById('logisticsValue').textContent = C_logistics_per_unit.toFixed(2);
-      document.getElementById('adsValue').textContent = ads_per_sale.toFixed(2);
-      document.getElementById('otherGroupValue').textContent = C_other_group.toFixed(2);
-      document.getElementById('purchaseValue').textContent = C_purchase.toFixed(2);
-      document.getElementById('totalCostValue').textContent = C_total.toFixed(2);
-      document.getElementById('profitValue').textContent = Profit.toFixed(2);
-      document.getElementById('marginValue').textContent = margin_percent.toFixed(2);
-      document.getElementById('minPriceValue').textContent = P_min > 0 ? P_min.toFixed(2) : '—';
-
-      document.getElementById('feeShare').textContent = feeShare.toFixed(1);
-      document.getElementById('logisticsShare').textContent = logShare.toFixed(1);
-      document.getElementById('adsShare').textContent = adsShare.toFixed(1);
-      document.getElementById('otherGroupShare').textContent = otherGroupShare.toFixed(1);
-      document.getElementById('purchaseShare').textContent = purchaseShare.toFixed(1);
-
-      const statusBox = document.getElementById('statusBox');
-      const statusText = statusBox.querySelector('.status-text');
-      statusBox.classList.remove('good', 'bad', 'neutral');
-
-      if (margin_percent >= 20) {
-        statusBox.classList.add('good');
-        statusText.textContent = 'Маржа выглядит комфортной. Можно масштабироваться или тестировать более агрессивную рекламу.';
-      } else if (margin_percent > 0) {
-        statusBox.classList.add('neutral');
-        statusText.textContent = 'Маржа положительная, но невысокая. Имеет смысл доработать цену, себестоимость или рекламу.';
-      } else {
-        statusBox.classList.add('bad');
-        statusText.textContent = 'Юнит в минусе. Проверьте цену, себестоимость, логистику и рекламные расходы.';
-      }
-
-      const productName = document.getElementById('productName').value || '';
-      const productUrl = document.getElementById('productUrl').value || '';
-      const today = new Date();
-
-      const marketplaceCosts = C_fee + C_logistics_per_unit + ads_per_sale;
-
-      lastCalculation = {
-        dateObj: today,
-        dateStr: formatDateShort(today),
-        productName,
-        productUrl,
-        parentCategory: selectedParentCategory || '',
-        categoryName: selectedCategory ? selectedCategory.name : '',
-        price: P,
-        priceForBuyer: P_for_buyer,
-        fee: C_fee,
-        logistics: C_logistics_per_unit,
-        ads: ads_per_sale,
-        otherCosts: other_costs,
-        purchase: C_purchase,
-        acquiring: C_acq,
-        tax: C_tax,
-        profit: Profit,
-        margin: margin_percent,
-        minPrice: P_min,
-        targetMargin: target_margin_percent,
-        marketplaceCosts,
-        otherGroupCosts: C_other_group,
-        feeShare,
-        logShare,
-        adsShare,
-        otherGroupShare,
-        purchaseShare,
-        totalCost: C_total
-      };
-    }
-
-    /* ---------- СБРОС / ИСТОРИЯ / CSV ---------- */
-
-    function resetForm() {
-      const inputs = document.querySelectorAll('input[type="number"], input[type="text"]');
-      inputs.forEach(el => {
-        el.value = '';
-      });
-
-      selectedWarehouse = null;
-      selectedCategory = null;
-      selectedParentCategory = null;
-      currentFeePercent = 0;
-
-      document.getElementById('results').style.display = 'none';
-    }
-
-    function saveToTable() {
-      if (!lastCalculation) {
-        alert('Сначала выполните расчёт.');
-        return;
-      }
-
-      historyData.push(lastCalculation);
-
-      const historyCard = document.getElementById('card-history');
-      const tbody = document.querySelector('#resultsTable tbody');
-
-      historyCard.style.display = 'block';
-
-      const row = document.createElement('tr');
-
-      function td(text) {
-        const cell = document.createElement('td');
-        cell.textContent = text;
-        return cell;
-      }
-
-      const minPriceDisplay =
-        lastCalculation.minPrice && lastCalculation.minPrice > 0
-          ? `${lastCalculation.minPrice.toFixed(2)} ₽ при ${lastCalculation.targetMargin.toFixed(1)}%`
-          : '—';
-
-      row.appendChild(td(lastCalculation.dateStr));
-      row.appendChild(td(lastCalculation.productName || ''));
-      row.appendChild(td(lastCalculation.price.toFixed(2)));
-      row.appendChild(td(lastCalculation.priceForBuyer.toFixed(2)));
-      row.appendChild(td(lastCalculation.marketplaceCosts.toFixed(2)));
-      row.appendChild(td(lastCalculation.otherGroupCosts.toFixed(2)));
-      row.appendChild(td(lastCalculation.purchase.toFixed(2)));
-      row.appendChild(td(lastCalculation.profit.toFixed(2)));
-      row.appendChild(td(lastCalculation.margin.toFixed(2)));
-      row.appendChild(td(minPriceDisplay));
-
-      tbody.appendChild(row);
-    }
-
-    function exportToCSV() {
-      if (!historyData.length) {
-        alert('Нет данных для экспорта. Сохраните хотя бы один расчёт в историю.');
-        return;
-      }
-
-      const header = [
-        'Дата',
-        'Товар',
-        'Ссылка',
-        'Родительская категория',
-        'Категория WB',
-        'Цена до СПП, ₽',
-        'Цена с СПП, ₽',
-        'Комиссия, ₽',
-        'Комиссия, % от цены',
-        'Логистика с выкупом, ₽',
-        'Логистика, % от цены',
-        'Реклама, ₽',
-        'Реклама, % от цены',
-        'Прочие расходы (эквайринг+налог+прочие), ₽',
-        'Прочие, % от цены',
-        'Закупка, ₽',
-        'Закупка, % от цены',
-        'Эквайринг, ₽',
-        'Налог, ₽',
-        'Расходы маркетплейса (комиссия+логистика+реклама), ₽',
-        'Полные переменные затраты, ₽',
-        'Чистая прибыль, ₽',
-        'Маржа, %',
-        'Мин. цена, ₽',
-        'Целевая маржа, %'
-      ];
-
-      const rows = historyData.map(item => [
-        item.dateStr,
-        item.productName || '',
-        item.productUrl || '',
-        item.parentCategory || '',
-        item.categoryName || '',
-        item.price.toFixed(2),
-        item.priceForBuyer.toFixed(2),
-        item.fee.toFixed(2),
-        item.feeShare.toFixed(1),
-        item.logistics.toFixed(2),
-        item.logShare.toFixed(1),
-        item.ads.toFixed(2),
-        item.adsShare.toFixed(1),
-        item.otherGroupCosts.toFixed(2),
-        item.otherGroupShare.toFixed(1),
-        item.purchase.toFixed(2),
-        item.purchaseShare.toFixed(1),
-        item.acquiring.toFixed(2),
-        item.tax.toFixed(2),
-        item.marketplaceCosts.toFixed(2),
-        item.totalCost.toFixed(2),
-        item.profit.toFixed(2),
-        item.margin.toFixed(2),
-        item.minPrice > 0 ? item.minPrice.toFixed(2) : '',
-        item.targetMargin > 0 ? item.targetMargin.toFixed(1) : ''
-      ]);
-
-      const csv = [header, ...rows]
-        .map(row =>
-          row
-            .map(cell => `"${String(cell).replace(/"/g, '""')}"`)
-            .join(',')
-        )
-        .join('\n');
-
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'wb_unit_economics.csv';
-      a.style.display = 'none';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
     }
   </script>
 </body>
