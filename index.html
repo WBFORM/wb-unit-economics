@@ -1115,21 +1115,20 @@
       const authEmailInput = document.getElementById('authEmail');
 
       const { data } = await supabaseClient.auth.getUser();
-      const user = data?.user || null;
+      const user = data?.user || null; // [web:1334]
 
       if (user) {
         authStatus.innerHTML = 'Вошёл как <span>' + (user.email || 'user') + '</span>';
-        signInBtn.style.display = 'none';
-        signOutBtn.style.display = 'inline-flex';
-        if (authEmailInput && user.email) {
-          authEmailInput.value = user.email;
-        }
+        if (authEmailInput) authEmailInput.style.display = 'none';
+        if (signInBtn) signInBtn.style.display = 'none';
+        if (signOutBtn) signOutBtn.style.display = 'inline-flex';
       } else {
         authStatus.textContent = 'Не авторизован';
-        signInBtn.style.display = 'inline-flex';
-        signOutBtn.style.display = 'none';
+        if (authEmailInput) authEmailInput.style.display = 'inline-flex';
+        if (signInBtn) signInBtn.style.display = 'inline-flex';
+        if (signOutBtn) signOutBtn.style.display = 'none';
       }
-      authMessage.textContent = '';
+      if (authMessage) authMessage.textContent = '';
     }
 
     async function signInWithMagicLink() {
@@ -1149,34 +1148,64 @@
         email,
         options: {
           shouldCreateUser: true,
-          // точный URL GitHub Pages
           emailRedirectTo: 'https://wbform.github.io/wb-unit-economics/'
         }
-      }); // [web:1297][web:1307]
+      }); // [web:1301][web:1349]
 
       if (error) {
-        console.error(error);
-        authMessage.textContent = 'Ошибка при отправке письма: ' + error.message;
+        console.error('Sign in error:', error);
+        if (error.message === 'Load failed') {
+          authMessage.textContent = 'Не удалось связаться с сервером при отправке письма. Попробуйте ещё раз через минуту.';
+        } else {
+          authMessage.textContent = 'Ошибка при отправке письма: ' + error.message;
+        }
       } else {
         authMessage.textContent = 'Письмо со ссылкой отправлено. Проверьте почту и перейдите по ссылке.';
       }
     }
 
+    let isSigningOut = false;
+
     async function signOut() {
       const authMessage = document.getElementById('authMessage');
-      const { error } = await supabaseClient.auth.signOut();
-      if (error) {
-        authMessage.textContent = 'Ошибка при выходе: ' + error.message;
-      } else {
-        authMessage.textContent = 'Вы вышли из аккаунта.';
-        updateAuthUI();
+      const signOutBtn = document.getElementById('authSignOutBtn');
+
+      if (isSigningOut) return;
+      isSigningOut = true;
+
+      if (signOutBtn) {
+        signOutBtn.disabled = true;
+        signOutBtn.textContent = '⏳ Выходим...';
       }
+
+      const { error } = await supabaseClient.auth.signOut(); // [web:1346]
+
+      if (error) {
+        console.error('Sign out error:', error);
+        if (authMessage) {
+          if (error.message === 'Load failed') {
+            authMessage.textContent = 'Не удалось связаться с сервером при выходе, обновите страницу.';
+          } else {
+            authMessage.textContent = 'Ошибка при выходе: ' + error.message;
+          }
+        }
+      } else {
+        if (authMessage) authMessage.textContent = 'Вы вышли из аккаунта.';
+      }
+
+      await updateAuthUI();
+
+      if (signOutBtn) {
+        signOutBtn.disabled = false;
+        signOutBtn.textContent = '🚪 Выйти';
+      }
+      isSigningOut = false;
     }
 
-    // Подписка на изменения сессии
+    // Подписка на изменения сессии (после клика по magic link)
     supabaseClient.auth.onAuthStateChange((_event, _session) => {
       updateAuthUI();
-    });
+    }); // [web:1337][web:1338]
 
     function toNumber(value) {
       const n = parseFloat((value || '').toString().replace(',', '.'));
