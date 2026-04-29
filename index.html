@@ -89,22 +89,6 @@
       color: #4b5563;
     }
 
-    .auth-email-input {
-      max-width: 220px;
-      padding: 6px 8px;
-      border-radius: 999px;
-      border: 1px solid #d1d5db;
-      font-size: 12px;
-      background: #f9fafb;
-      outline: none;
-    }
-
-    .auth-email-input:focus {
-      border-color: #4f46e5;
-      box-shadow: 0 0 0 1px rgba(79, 70, 229, 0.18);
-      background: #ffffff;
-    }
-
     .auth-status {
       min-width: 80px;
       text-align: right;
@@ -115,14 +99,6 @@
     .auth-status span {
       font-weight: 600;
       color: #111827;
-    }
-
-    .auth-message {
-      width: 100%;
-      text-align: right;
-      font-size: 11px;
-      color: #6b7280;
-      min-height: 14px;
     }
 
     .layout-grid {
@@ -490,7 +466,7 @@
       cursor: pointer;
       color: #111827;
       display: flex;
-      justify-content: space-between;
+      justify-content:space-between;
       gap: 6px;
     }
 
@@ -589,6 +565,37 @@
       opacity: 1;
       visibility: visible;
     }
+
+    /* ---------- МОДАЛКА АВТОРИЗАЦИИ ---------- */
+
+    .auth-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.45);
+      z-index: 50;
+      display: none;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .auth-modal {
+      background: #ffffff;
+      border-radius: 18px;
+      max-width: 420px;
+      width: 100%;
+      padding: 18px 20px 16px;
+      box-shadow: 0 24px 60px rgba(15, 23, 42, 0.35);
+      position: relative;
+    }
+
+    .auth-modal-tabs button {
+      flex: 1;
+      padding: 6px 0;
+      border-radius: 999px;
+      border: none;
+      font-size: 12px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -612,20 +619,12 @@
           <div class="auth-status" id="authStatus">
             Не авторизован
           </div>
-          <input
-            type="email"
-            id="authEmail"
-            class="auth-email-input"
-            placeholder="email для входа"
-            autocomplete="email"
-          />
-          <button type="button" class="btn-auth" id="authSignInBtn">
+          <button type="button" class="btn-auth" id="authOpenModalBtn">
             🔑 Войти
           </button>
           <button type="button" class="btn-auth btn-auth-secondary" id="authSignOutBtn" style="display:none;">
             🚪 Выйти
           </button>
-          <div class="auth-message" id="authMessage"></div>
         </div>
       </div>
     </header>
@@ -1080,6 +1079,68 @@
     </section>
   </div>
 
+  <!-- Модальное окно авторизации -->
+  <div id="authModalBackdrop" class="auth-modal-backdrop">
+    <div id="authModal" class="auth-modal">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <div style="font-weight:600; font-size:15px;">Вход в аккаунт</div>
+        <button type="button" id="authModalCloseBtn"
+          style="border:none; background:transparent; cursor:pointer; font-size:18px; line-height:1;">×</button>
+      </div>
+
+      <div class="auth-modal-tabs" style="display:flex; gap:6px; margin-bottom:10px; font-size:12px;">
+        <button type="button" id="authTabEmail"
+          style="background:#111827; color:#f9fafb;">
+          По email
+        </button>
+        <button type="button" id="authTabSocial"
+          style="background:#e5e7eb; color:#111827;">
+          Через соцсети
+        </button>
+      </div>
+
+      <!-- Вкладка email -->
+      <div id="authEmailPane">
+        <div style="font-size:12px; color:#6b7280; margin-bottom:6px;">
+          Введите email, мы отправим ссылку для входа. Регистрация происходит автоматически.
+        </div>
+        <input
+          type="email"
+          id="authEmail"
+          placeholder="email для входа"
+          autocomplete="email"
+          style="width:100%; padding:7px 9px; border-radius:999px;
+                 border:1px solid #d1d5db; font-size:13px; margin-bottom:8px;"/>
+        <button type="button" class="btn-auth" id="authSignInBtn"
+          style="width:100%; justify-content:center;">
+          🔑 Войти
+        </button>
+        <div class="auth-message" id="authMessage" style="text-align:left; margin-top:4px;"></div>
+      </div>
+
+      <!-- Вкладка соцсетей -->
+      <div id="authSocialPane" style="display:none;">
+        <div style="font-size:12px; color:#6b7280; margin-bottom:8px;">
+          Выберите удобный способ входа. При первом входе создадим аккаунт автоматически.
+        </div>
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <button type="button" id="btnLoginGoogle" class="btn-secondary"
+            style="width:100%; justify-content:center;">
+            🔵 Войти через Google
+          </button>
+          <button type="button" id="btnLoginApple" class="btn-secondary"
+            style="width:100%; justify-content:center;">
+             Войти через Apple
+          </button>
+          <button type="button" id="btnLoginYandex" class="btn-secondary"
+            style="width:100%; justify-content:center;">
+            🟡 Войти через Яндекс
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Supabase SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
@@ -1106,16 +1167,17 @@
 
     let currentProductImage = null;
 
-    // -------- AUTH: MAGIC LINK + UI ----------
+    // --- auth state ---
+    let isSigningOut = false;
+    let isSendingMagicLink = false;
+    let magicLinkCooldownSeconds = 30;
+    let magicLinkCooldownTimer = null;
 
     async function updateAuthUI() {
       const authStatus = document.getElementById('authStatus');
-      const authMessage = document.getElementById('authMessage');
-      const signInBtn = document.getElementById('authSignInBtn');
-      const signOutBtn = document.getElementById('authSignOutBtn');
-      const authEmailInput = document.getElementById('authEmail');
+      const authOpenModalBtn = document.getElementById('authOpenModalBtn');
+      const authSignOutBtn = document.getElementById('authSignOutBtn');
 
-      // 1. Сначала ждём сессию (токен из URL/куки) [web:1337]
       const { data: sessionData } = await supabaseClient.auth.getSession();
       const session = sessionData?.session || null;
 
@@ -1123,30 +1185,28 @@
       if (session && session.user) {
         user = session.user;
       } else {
-        // 2. Если что-то не успело подтянуться, пробуем getUser [web:1334][web:1355]
         const { data } = await supabaseClient.auth.getUser();
         user = data?.user || null;
       }
 
       if (user) {
         authStatus.innerHTML = 'Вошёл как <span>' + (user.email || 'user') + '</span>';
-        if (authEmailInput) authEmailInput.style.display = 'none';
-        if (signInBtn) signInBtn.style.display = 'none';
-        if (signOutBtn) signOutBtn.style.display = 'inline-flex';
+        if (authOpenModalBtn) authOpenModalBtn.textContent = '👤 Аккаунт';
+        if (authSignOutBtn) authSignOutBtn.style.display = 'inline-flex';
       } else {
         authStatus.textContent = 'Не авторизован';
-        if (authEmailInput) authEmailInput.style.display = 'inline-flex';
-        if (signInBtn) signInBtn.style.display = 'inline-flex';
-        if (signOutBtn) signOutBtn.style.display = 'none';
+        if (authOpenModalBtn) authOpenModalBtn.textContent = '🔑 Войти';
+        if (authSignOutBtn) authSignOutBtn.style.display = 'none';
       }
-
-      if (authMessage) authMessage.textContent = '';
     }
 
     async function signInWithMagicLink() {
       const authEmailInput = document.getElementById('authEmail');
       const authMessage = document.getElementById('authMessage');
-      if (!authEmailInput) return;
+      const signInBtn = document.getElementById('authSignInBtn');
+      if (!authEmailInput || !signInBtn) return;
+
+      if (isSendingMagicLink) return;
 
       const email = (authEmailInput.value || '').trim();
       if (!email) {
@@ -1154,7 +1214,33 @@
         return;
       }
 
+      isSendingMagicLink = true;
+      let cooldownLeft = magicLinkCooldownSeconds;
+
+      const updateButtonText = () => {
+        if (!signInBtn) return;
+        if (cooldownLeft > 0) {
+          signInBtn.textContent = `🔑 Войти (${cooldownLeft}s)`;
+        } else {
+          signInBtn.textContent = '🔑 Войти';
+        }
+      };
+
+      signInBtn.disabled = true;
+      updateButtonText();
       authMessage.textContent = 'Отправляем magic link...';
+
+      magicLinkCooldownTimer = setInterval(() => {
+        cooldownLeft -= 1;
+        if (cooldownLeft <= 0) {
+          clearInterval(magicLinkCooldownTimer);
+          isSendingMagicLink = false;
+          signInBtn.disabled = false;
+          signInBtn.textContent = '🔑 Войти';
+        } else {
+          updateButtonText();
+        }
+      }, 1000);
 
       const { error } = await supabaseClient.auth.signInWithOtp({
         email,
@@ -1162,12 +1248,14 @@
           shouldCreateUser: true,
           emailRedirectTo: 'https://wbform.github.io/wb-unit-economics/'
         }
-      }); // [web:1301][web:1307]
+      }); // [web:1307][web:1189]
 
       if (error) {
         console.error('Sign in error:', error);
         if (error.message === 'Load failed') {
-          authMessage.textContent = 'Не удалось связаться с сервером при отправке письма. Попробуйте ещё раз через минуту.';
+          authMessage.textContent = 'Не удалось связаться с сервером при отправке письма. Попробуйте ещё раз позже.';
+        } else if (error.message?.toLowerCase().includes('rate limit')) {
+          authMessage.textContent = 'Вы слишком часто запрашиваете письма. Подождите немного и попробуйте снова.';
         } else {
           authMessage.textContent = 'Ошибка при отправке письма: ' + error.message;
         }
@@ -1176,7 +1264,28 @@
       }
     }
 
-    let isSigningOut = false;
+    async function loginWithProvider(provider) {
+      const authMessage = document.getElementById('authMessage');
+      try {
+        const { error } = await supabaseClient.auth.signInWithOAuth({
+          provider,
+          options: {
+            redirectTo: 'https://wbform.github.io/wb-unit-economics/'
+          }
+        }); // [web:1189][web:1384]
+        if (error) {
+          console.error('OAuth error:', error);
+          if (authMessage) {
+            authMessage.textContent = 'Ошибка входа через ' + provider + ': ' + error.message;
+          }
+        }
+      } catch (e) {
+        console.error('OAuth exception:', e);
+        if (authMessage) {
+          authMessage.textContent = 'Не удалось запустить вход через ' + provider;
+        }
+      }
+    }
 
     async function signOut() {
       const authMessage = document.getElementById('authMessage');
@@ -1190,7 +1299,7 @@
         signOutBtn.textContent = '⏳ Выходим...';
       }
 
-      const { error } = await supabaseClient.auth.signOut(); // [web:1346]
+      const { error } = await supabaseClient.auth.signOut();
 
       if (error) {
         console.error('Sign out error:', error);
@@ -1214,7 +1323,6 @@
       isSigningOut = false;
     }
 
-    // Подписка на изменения сессии (после клика по magic link) [web:1337]
     supabaseClient.auth.onAuthStateChange((_event, _session) => {
       updateAuthUI();
     });
@@ -1241,7 +1349,7 @@
       return `${day}.${month}.${year}`;
     }
 
-    /* ---------- СКЛАДЫ: КОМБОБОКС ---------- */
+    /* ---------- СКЛАДЫ ---------- */
 
     let warehouseSearchTimer = null;
 
@@ -1344,7 +1452,7 @@
       listEl.style.display = listEl.style.display === 'block' ? 'none' : 'block';
     }
 
-    /* ---------- КАТЕГОРИИ: РОДИТЕЛЬ + КОМБОБОКС + ПОИСК ---------- */
+    /* ---------- КАТЕГОРИИ ---------- */
 
     let categorySearchTimer = null;
     let parentSearchTimer = null;
@@ -1596,10 +1704,9 @@
       listEl.style.display = listEl.style.display === 'block' ? 'none' : 'block';
     }
 
-    /* ---------- ЗАГРУЗКА JSON + MAGIC LINK TOKEN HANDLING ---------- */
+    /* ---------- ЗАГРУЗКА JSON + MAGIC LINK TOKEN ---------- */
 
     window.addEventListener('DOMContentLoaded', async () => {
-      // 1) обработка токена из magic link (после верификации Supabase редиректит с параметрами) [web:1359][web:1363]
       const url = new URL(window.location.href);
       const token =
         url.searchParams.get('token_hash') ||
@@ -1608,7 +1715,6 @@
 
       if (token) {
         try {
-          // Любой вызов auth подтянет сессию на клиенте, если токен валиден [web:1337][web:1355]
           await supabaseClient.auth.getSession();
         } catch (e) {
           console.error('Ошибка при восстановлении сессии:', e);
@@ -1645,14 +1751,75 @@
         photoFileInput.addEventListener('change', handleLocalPhotoChange);
       }
 
-      const signInBtn = document.getElementById('authSignInBtn');
-      const signOutBtn = document.getElementById('authSignOutBtn');
-      if (signInBtn) signInBtn.addEventListener('click', signInWithMagicLink);
-      if (signOutBtn) signOutBtn.addEventListener('click', signOut);
+      const authOpenModalBtn = document.getElementById('authOpenModalBtn');
+      const authModalBackdrop = document.getElementById('authModalBackdrop');
+      const authModalCloseBtn = document.getElementById('authModalCloseBtn');
+      const authTabEmail = document.getElementById('authTabEmail');
+      const authTabSocial = document.getElementById('authTabSocial');
+      const authEmailPane = document.getElementById('authEmailPane');
+      const authSocialPane = document.getElementById('authSocialPane');
 
-      // первый апдейт UI
+      function switchAuthTab(tab) {
+        if (!authTabEmail || !authTabSocial || !authEmailPane || !authSocialPane) return;
+        if (tab === 'email') {
+          authTabEmail.style.background = '#111827';
+          authTabEmail.style.color = '#f9fafb';
+          authTabSocial.style.background = '#e5e7eb';
+          authTabSocial.style.color = '#111827';
+          authEmailPane.style.display = 'block';
+          authSocialPane.style.display = 'none';
+        } else {
+          authTabEmail.style.background = '#e5e7eb';
+          authTabEmail.style.color = '#111827';
+          authTabSocial.style.background = '#111827';
+          authTabSocial.style.color = '#f9fafb';
+          authEmailPane.style.display = 'none';
+          authSocialPane.style.display = 'block';
+        }
+      }
+
+      function openAuthModal(initialTab = 'email') {
+        if (!authModalBackdrop) return;
+        authModalBackdrop.style.display = 'flex';
+        switchAuthTab(initialTab);
+      }
+
+      function closeAuthModal() {
+        if (!authModalBackdrop) return;
+        authModalBackdrop.style.display = 'none';
+      }
+
+      if (authOpenModalBtn) {
+        authOpenModalBtn.addEventListener('click', () => openAuthModal('email'));
+      }
+      if (authModalCloseBtn) {
+        authModalCloseBtn.addEventListener('click', closeAuthModal);
+      }
+      if (authModalBackdrop) {
+        authModalBackdrop.addEventListener('click', e => {
+          if (e.target === authModalBackdrop) closeAuthModal();
+        });
+      }
+      if (authTabEmail) {
+        authTabEmail.addEventListener('click', () => switchAuthTab('email'));
+      }
+      if (authTabSocial) {
+        authTabSocial.addEventListener('click', () => switchAuthTab('social'));
+      }
+
+      const signInBtn = document.getElementById('authSignInBtn');
+      const authSignOutBtn = document.getElementById('authSignOutBtn');
+      const btnLoginGoogle = document.getElementById('btnLoginGoogle');
+      const btnLoginApple = document.getElementById('btnLoginApple');
+      const btnLoginYandex = document.getElementById('btnLoginYandex');
+
+      if (signInBtn) signInBtn.addEventListener('click', signInWithMagicLink);
+      if (authSignOutBtn) authSignOutBtn.addEventListener('click', signOut);
+      if (btnLoginGoogle) btnLoginGoogle.addEventListener('click', () => loginWithProvider('google'));
+      if (btnLoginApple) btnLoginApple.addEventListener('click', () => loginWithProvider('apple'));
+      if (btnLoginYandex) btnLoginYandex.addEventListener('click', () => loginWithProvider('custom:yandex'));
+
       updateAuthUI();
-      // ретрай через 1.5 сек, чтобы поймать сессию после магик-линка [web:1351][web:1315]
       setTimeout(() => {
         updateAuthUI();
       }, 1500);
@@ -1699,7 +1866,7 @@
         });
     });
 
-    /* ---------- РУЧНАЯ ЗАГРУЗКА ФОТО ---------- */
+    /* ---------- ФОТО ---------- */
 
     function handleLocalPhotoChange(event) {
       const file = event.target.files && event.target.files[0];
