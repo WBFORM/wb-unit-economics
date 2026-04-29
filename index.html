@@ -1114,7 +1114,7 @@
       const signOutBtn = document.getElementById('authSignOutBtn');
       const authEmailInput = document.getElementById('authEmail');
 
-      const { data } = await supabaseClient.auth.getUser(); // всегда проверяет токен [web:1305]
+      const { data } = await supabaseClient.auth.getUser();
       const user = data?.user || null;
 
       if (user) {
@@ -1149,10 +1149,10 @@
         email,
         options: {
           shouldCreateUser: true,
-          // поставь сюда домен своего калькулятора на GitHub Pages
-          emailRedirectTo: window.location.origin
+          // точный URL GitHub Pages
+          emailRedirectTo: 'https://wbform.github.io/wb-unit-economics/'
         }
-      }); // [web:1297][web:1301]
+      }); // [web:1297][web:1307]
 
       if (error) {
         console.error(error);
@@ -1164,7 +1164,7 @@
 
     async function signOut() {
       const authMessage = document.getElementById('authMessage');
-      const { error } = await supabaseClient.auth.signOut(); // [web:1306]
+      const { error } = await supabaseClient.auth.signOut();
       if (error) {
         authMessage.textContent = 'Ошибка при выходе: ' + error.message;
       } else {
@@ -1173,10 +1173,10 @@
       }
     }
 
-    // Подписка на изменения сессии (после клика по magic link)
+    // Подписка на изменения сессии
     supabaseClient.auth.onAuthStateChange((_event, _session) => {
       updateAuthUI();
-    }); // [web:1302]
+    });
 
     function toNumber(value) {
       const n = parseFloat((value || '').toString().replace(',', '.'));
@@ -1588,7 +1588,7 @@
       if (signInBtn) signInBtn.addEventListener('click', signInWithMagicLink);
       if (signOutBtn) signOutBtn.addEventListener('click', signOut);
 
-      updateAuthUI(); // проверяем, есть ли пользователь при загрузке [web:1302]
+      updateAuthUI();
 
       fetch('warehouses.json')
         .then(response => {
