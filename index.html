@@ -1106,7 +1106,8 @@
 
     let currentProductImage = null;
 
-    // -------- AUTH: MAGIC LINK ------
+    // -------- AUTH: MAGIC LINK + UI ----------
+
     async function updateAuthUI() {
       const authStatus = document.getElementById('authStatus');
       const authMessage = document.getElementById('authMessage');
@@ -1114,8 +1115,18 @@
       const signOutBtn = document.getElementById('authSignOutBtn');
       const authEmailInput = document.getElementById('authEmail');
 
-      const { data } = await supabaseClient.auth.getUser();
-      const user = data?.user || null; // [web:1334]
+      // 1. Сначала ждём сессию (токен из URL/куки) [web:1337]
+      const { data: sessionData } = await supabaseClient.auth.getSession();
+      const session = sessionData?.session || null;
+
+      let user = null;
+      if (session && session.user) {
+        user = session.user;
+      } else {
+        // 2. Если что-то не успело подтянуться, пробуем getUser [web:1334][web:1355]
+        const { data } = await supabaseClient.auth.getUser();
+        user = data?.user || null;
+      }
 
       if (user) {
         authStatus.innerHTML = 'Вошёл как <span>' + (user.email || 'user') + '</span>';
@@ -1128,6 +1139,7 @@
         if (signInBtn) signInBtn.style.display = 'inline-flex';
         if (signOutBtn) signOutBtn.style.display = 'none';
       }
+
       if (authMessage) authMessage.textContent = '';
     }
 
@@ -1150,7 +1162,7 @@
           shouldCreateUser: true,
           emailRedirectTo: 'https://wbform.github.io/wb-unit-economics/'
         }
-      }); // [web:1301][web:1349]
+      }); // [web:1301][web:1307]
 
       if (error) {
         console.error('Sign in error:', error);
@@ -1202,10 +1214,10 @@
       isSigningOut = false;
     }
 
-    // Подписка на изменения сессии (после клика по magic link)
+    // Подписка на изменения сессии (после клика по magic link) [web:1337]
     supabaseClient.auth.onAuthStateChange((_event, _session) => {
       updateAuthUI();
-    }); // [web:1337][web:1338]
+    });
 
     function toNumber(value) {
       const n = parseFloat((value || '').toString().replace(',', '.'));
@@ -1584,9 +1596,30 @@
       listEl.style.display = listEl.style.display === 'block' ? 'none' : 'block';
     }
 
-    /* ---------- ЗАГРУЗКА JSON + настройка локализации / фото + AUTH UI ---------- */
+    /* ---------- ЗАГРУЗКА JSON + MAGIC LINK TOKEN HANDLING ---------- */
 
-    window.addEventListener('DOMContentLoaded', () => {
+    window.addEventListener('DOMContentLoaded', async () => {
+      // 1) обработка токена из magic link (после верификации Supabase редиректит с параметрами) [web:1359][web:1363]
+      const url = new URL(window.location.href);
+      const token =
+        url.searchParams.get('token_hash') ||
+        url.searchParams.get('token') ||
+        url.searchParams.get('code');
+
+      if (token) {
+        try {
+          // Любой вызов auth подтянет сессию на клиенте, если токен валиден [web:1337][web:1355]
+          await supabaseClient.auth.getSession();
+        } catch (e) {
+          console.error('Ошибка при восстановлении сессии:', e);
+        } finally {
+          url.searchParams.delete('token');
+          url.searchParams.delete('token_hash');
+          url.searchParams.delete('code');
+          window.history.replaceState({}, '', url.toString());
+        }
+      }
+
       const categoriesStatus = document.getElementById('categoriesStatus');
 
       const toggleBtn = document.getElementById('toggleLocalization');
@@ -1617,7 +1650,12 @@
       if (signInBtn) signInBtn.addEventListener('click', signInWithMagicLink);
       if (signOutBtn) signOutBtn.addEventListener('click', signOut);
 
+      // первый апдейт UI
       updateAuthUI();
+      // ретрай через 1.5 сек, чтобы поймать сессию после магик-линка [web:1351][web:1315]
+      setTimeout(() => {
+        updateAuthUI();
+      }, 1500);
 
       fetch('warehouses.json')
         .then(response => {
@@ -1705,7 +1743,7 @@
       reader.readAsDataURL(file);
     }
 
-    /* ---------- РАСЧЁТ (налог от выручки, упрощённый вывод) ---------- */
+    /* ---------- РАСЧЁТ ---------- */
 
     function calculate() {
       const lengthCm = toNumber(document.getElementById('lengthCm').value);
