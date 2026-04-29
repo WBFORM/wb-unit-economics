@@ -530,7 +530,7 @@
         <div class="subtitle">актуален на 01.05.2026.</div>
       </div>
       <div class="app-meta">
-        <div>v1.8 · расчёт в браузере, без передачи данных</div>
+        <div>v1.9 · расчёт в браузере, без передачи данных</div>
         <div>Обратная связь: <a href="https://t.me/Denidevil" target="_blank" rel="noopener noreferrer">@Denidevil</a></div>
       </div>
     </header>
@@ -744,7 +744,7 @@
         </section>
       </div>
 
-      <!-- Правая колонка: расходы + результаты -->
+      <!-- Правая колонка: расходы + итоги -->
       <div class="right-column">
         <!-- Блок 3: Расходы -->
         <section class="card" id="card-costs">
@@ -771,7 +771,7 @@
             </div>
 
             <div class="field">
-              <label for="otherCosts">Прочие переменные расходы, ₽</label>
+              <label for="otherCosts">Прочие расходы, ₽</label>
               <small>Упаковка, доп. услуги и т.п.</small>
               <input type="number" id="otherCosts" placeholder="например, 30" step="0.01" />
             </div>
@@ -790,8 +790,8 @@
 
           <div class="grid">
             <div class="field">
-              <label for="taxPercent">Налог, % (УСН 6% от выручки)</label>
-              <small>Считаем от выручки до СПП (P × ставка)</small>
+              <label for="taxPercent">Налог, % (УСН от выручки)</label>
+              <small>Считаем от цены до СПП (P × ставка)</small>
               <div class="inline-suffix">
                 <input type="number" id="taxPercent" placeholder="например, 6" step="0.01" />
                 <span>%</span>
@@ -842,7 +842,7 @@
                 <span>4. Итоги расчёта</span>
               </div>
               <div class="card-subtitle">
-                Чистая прибыль и маржа с учётом всех переменных расходов.
+                Основные показатели по одному юниту.
               </div>
             </div>
           </div>
@@ -873,7 +873,7 @@
                 </div>
 
                 <div class="result-item">
-                  <div class="result-item-label">Логистика на один выкуп</div>
+                  <div class="result-item-label">Доставка с учётом % выкупа</div>
                   <div class="result-item-value">
                     <span id="logisticsValue"></span> ₽
                     (<span id="logisticsShare"></span>%)
@@ -881,7 +881,7 @@
                 </div>
 
                 <div class="result-item">
-                  <div class="result-item-label">Реклама (ДРР)</div>
+                  <div class="result-item-label">Рекламные расходы</div>
                   <div class="result-item-value">
                     <span id="adsValue"></span> ₽
                     (<span id="adsShare"></span>%)
@@ -889,10 +889,10 @@
                 </div>
 
                 <div class="result-item">
-                  <div class="result-item-label">Эквайринг</div>
+                  <div class="result-item-label">Прочие расходы</div>
                   <div class="result-item-value">
-                    <span id="acquiringValue"></span> ₽
-                    (<span id="acquiringShare"></span>%)
+                    <span id="otherCostsValue"></span> ₽
+                    (<span id="otherCostsShare"></span>%)
                   </div>
                 </div>
 
@@ -905,52 +905,23 @@
                 </div>
 
                 <div class="result-item">
-                  <div class="result-item-label">Прочие переменные расходы</div>
+                  <div class="result-item-label">Эквайринг</div>
                   <div class="result-item-value">
-                    <span id="otherCostsValue"></span> ₽
-                    (<span id="otherCostsShare"></span>%)
+                    <span id="acquiringValue"></span> ₽
+                    (<span id="acquiringShare"></span>%)
                   </div>
                 </div>
 
                 <div class="result-item">
-                  <div class="result-item-label">Переменные расходы без закупки</div>
-                  <div class="result-item-value">
-                    <span id="otherGroupValue"></span> ₽
-                    (<span id="otherGroupShare"></span>%)
-                  </div>
-                </div>
-
-                <div class="result-item">
-                  <div class="result-item-label">Закупочная цена</div>
-                  <div class="result-item-value">
-                    <span id="purchaseValue"></span> ₽
-                    (<span id="purchaseShare"></span>%)
-                  </div>
-                </div>
-
-                <div class="result-item">
-                  <div class="result-item-label">Полные переменные затраты</div>
-                  <div class="result-item-value">
-                    <span id="totalCostValue"></span> ₽
-                  </div>
-                </div>
-
-                <div class="result-item">
-                  <div class="result-item-label">Прибыль на единицу</div>
+                  <div class="result-item-label">Чистая прибыль</div>
                   <div class="result-item-value">
                     <span id="profitValue"></span> ₽
+                    (<span id="marginValue"></span>%)
                   </div>
                 </div>
 
                 <div class="result-item">
-                  <div class="result-item-label">Маржа</div>
-                  <div class="result-item-value">
-                    <span id="marginValue"></span> %
-                  </div>
-                </div>
-
-                <div class="result-item">
-                  <div class="result-item-label">Минимальная цена при целевой марже</div>
+                  <div class="result-item-label">Мин. цена для целевой маржи</div>
                   <div class="result-item-value">
                     <span id="minPriceValue"></span> ₽
                   </div>
@@ -998,11 +969,12 @@
             <th>Фото</th>
             <th>Цена до СПП, ₽</th>
             <th>Цена с СПП, ₽</th>
-            <th>Расходы маркетплейса, ₽</th>
-            <th>Эквайринг, ₽</th>
-            <th>Налог, ₽</th>
+            <th>Комиссия, ₽</th>
+            <th>Доставка, ₽</th>
+            <th>Реклама, ₽</th>
             <th>Прочие, ₽</th>
-            <th>Закупка, ₽</th>
+            <th>Налог, ₽</th>
+            <th>Эквайринг, ₽</th>
             <th>Чистая прибыль, ₽</th>
             <th>Маржа, %</th>
             <th>Мин. цена (цел. маржа)</th>
@@ -1530,7 +1502,7 @@
       reader.readAsDataURL(file);
     }
 
-    /* ---------- РАСЧЁТ (налог от выручки) ---------- */
+    /* ---------- РАСЧЁТ (налог от выручки, упрощённый вывод) ---------- */
 
     function calculate() {
       const lengthCm = toNumber(document.getElementById('lengthCm').value);
@@ -1564,7 +1536,7 @@
         return;
       }
 
-      const P_for_buyer = P * (1 - spp_percent / 100); // цена для покупателя [web:1288]
+      const P_for_buyer = P * (1 - spp_percent / 100); // цена для покупателя [web:1278]
       const ads_per_sale = P * (ads_percent / 100);
 
       let volume_l = 0;
@@ -1622,7 +1594,7 @@
         ads_per_sale +
         other_costs;
 
-      // Налог от выручки (УСН 6%) [web:1278][web:1286]
+      // Налог от выручки [web:1285][web:1278]
       let C_tax = 0;
       if (tax_percent > 0) {
         C_tax = P * (tax_percent / 100);
@@ -1632,6 +1604,7 @@
       const Profit = P - C_total;
       const margin_percent = P > 0 ? (Profit / P) * 100 : 0;
 
+      // Минимальная цена под целевую маржу (по той же логике, что раньше)
       let P_min = 0;
       const target_margin_percent = toNumber(document.getElementById('targetMargin').value);
       if (target_margin_percent > 0) {
@@ -1647,16 +1620,12 @@
         }
       }
 
-      const C_other_group = C_acq + C_tax + other_costs;
-
       const feeShare = P > 0 ? (C_fee / P) * 100 : 0;
       const logShare = P > 0 ? (C_logistics_per_unit / P) * 100 : 0;
       const adsShare = P > 0 ? (ads_per_sale / P) * 100 : 0;
-      const otherGroupShare = P > 0 ? (C_other_group / P) * 100 : 0;
-      const purchaseShare = P > 0 ? (C_purchase / P) * 100 : 0;
-      const acquiringShare = P > 0 ? (C_acq / P) * 100 : 0;
-      const taxShare = P > 0 ? (C_tax / P) * 100 : 0;
       const otherCostsShare = P > 0 ? (other_costs / P) * 100 : 0;
+      const taxShare = P > 0 ? (C_tax / P) * 100 : 0;
+      const acquiringShare = P > 0 ? (C_acq / P) * 100 : 0;
 
       document.getElementById('results').style.display = 'block';
       document.getElementById('priceBeforeSppValue').textContent = P.toFixed(2);
@@ -1664,24 +1633,19 @@
       document.getElementById('feeValue').textContent = C_fee.toFixed(2);
       document.getElementById('logisticsValue').textContent = C_logistics_per_unit.toFixed(2);
       document.getElementById('adsValue').textContent = ads_per_sale.toFixed(2);
-      document.getElementById('acquiringValue').textContent = C_acq.toFixed(2);
-      document.getElementById('taxValue').textContent = C_tax.toFixed(2);
       document.getElementById('otherCostsValue').textContent = other_costs.toFixed(2);
-      document.getElementById('otherGroupValue').textContent = C_other_group.toFixed(2);
-      document.getElementById('purchaseValue').textContent = C_purchase.toFixed(2);
-      document.getElementById('totalCostValue').textContent = C_total.toFixed(2);
+      document.getElementById('taxValue').textContent = C_tax.toFixed(2);
+      document.getElementById('acquiringValue').textContent = C_acq.toFixed(2);
       document.getElementById('profitValue').textContent = Profit.toFixed(2);
-      document.getElementById('marginValue').textContent = margin_percent.toFixed(2);
       document.getElementById('minPriceValue').textContent = P_min > 0 ? P_min.toFixed(2) : '—';
 
       document.getElementById('feeShare').textContent = feeShare.toFixed(1);
       document.getElementById('logisticsShare').textContent = logShare.toFixed(1);
       document.getElementById('adsShare').textContent = adsShare.toFixed(1);
-      document.getElementById('acquiringShare').textContent = acquiringShare.toFixed(1);
-      document.getElementById('taxShare').textContent = taxShare.toFixed(1);
       document.getElementById('otherCostsShare').textContent = otherCostsShare.toFixed(1);
-      document.getElementById('otherGroupShare').textContent = otherGroupShare.toFixed(1);
-      document.getElementById('purchaseShare').textContent = purchaseShare.toFixed(1);
+      document.getElementById('taxShare').textContent = taxShare.toFixed(1);
+      document.getElementById('acquiringShare').textContent = acquiringShare.toFixed(1);
+      document.getElementById('marginValue').textContent = margin_percent.toFixed(1);
 
       const statusBox = document.getElementById('statusBox');
       const statusText = statusBox.querySelector('.status-text');
@@ -1700,8 +1664,6 @@
 
       const productName = document.getElementById('productName').value || '';
       const today = new Date();
-
-      const marketplaceCosts = C_fee + C_logistics_per_unit + ads_per_sale;
 
       lastCalculation = {
         dateObj: today,
@@ -1722,13 +1684,6 @@
         margin: margin_percent,
         minPrice: P_min,
         targetMargin: target_margin_percent,
-        marketplaceCosts,
-        otherGroupCosts: C_other_group,
-        feeShare,
-        logShare,
-        adsShare,
-        otherGroupShare,
-        purchaseShare,
         totalCost: C_total,
         productImage: currentProductImage || null
       };
@@ -1823,11 +1778,12 @@
 
       row.appendChild(td(lastCalculation.price.toFixed(2)));
       row.appendChild(td(lastCalculation.priceForBuyer.toFixed(2)));
-      row.appendChild(td(lastCalculation.marketplaceCosts.toFixed(2)));
-      row.appendChild(td(lastCalculation.acquiring.toFixed(2)));
-      row.appendChild(td(lastCalculation.tax.toFixed(2)));
+      row.appendChild(td(lastCalculation.fee.toFixed(2)));
+      row.appendChild(td(lastCalculation.logistics.toFixed(2)));
+      row.appendChild(td(lastCalculation.ads.toFixed(2)));
       row.appendChild(td(lastCalculation.otherCosts.toFixed(2)));
-      row.appendChild(td(lastCalculation.purchase.toFixed(2)));
+      row.appendChild(td(lastCalculation.tax.toFixed(2)));
+      row.appendChild(td(lastCalculation.acquiring.toFixed(2)));
       row.appendChild(td(lastCalculation.profit.toFixed(2)));
       row.appendChild(td(lastCalculation.margin.toFixed(2)));
       row.appendChild(td(minPriceDisplay));
@@ -1850,18 +1806,12 @@
         'Цена до СПП, ₽',
         'Цена с СПП, ₽',
         'Комиссия, ₽',
-        'Комиссия, % от цены',
-        'Логистика с выкупом, ₽',
-        'Логистика, % от цены',
+        'Логистика, ₽',
         'Реклама, ₽',
-        'Реклама, % от цены',
-        'Прочие расходы (эквайринг+налог+прочие), ₽',
-        'Прочие, % от цены',
-        'Закупка, ₽',
-        'Закупка, % от цены',
-        'Эквайринг, ₽',
+        'Прочие расходы, ₽',
         'Налог, ₽',
-        'Расходы маркетплейса (комиссия+логистика+реклама), ₽',
+        'Эквайринг, ₽',
+        'Закупка, ₽',
         'Полные переменные затраты, ₽',
         'Чистая прибыль, ₽',
         'Маржа, %',
@@ -1878,18 +1828,12 @@
         item.price.toFixed(2),
         item.priceForBuyer.toFixed(2),
         item.fee.toFixed(2),
-        item.feeShare.toFixed(1),
         item.logistics.toFixed(2),
-        item.logShare.toFixed(1),
         item.ads.toFixed(2),
-        item.adsShare.toFixed(1),
-        item.otherGroupCosts.toFixed(2),
-        item.otherGroupShare.toFixed(1),
-        item.purchase.toFixed(2),
-        item.purchaseShare.toFixed(1),
-        item.acquiring.toFixed(2),
+        item.otherCosts.toFixed(2),
         item.tax.toFixed(2),
-        item.marketplaceCosts.toFixed(2),
+        item.acquiring.toFixed(2),
+        item.purchase.toFixed(2),
         item.totalCost.toFixed(2),
         item.profit.toFixed(2),
         item.margin.toFixed(2),
