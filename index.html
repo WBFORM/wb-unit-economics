@@ -596,6 +596,15 @@
       font-size: 12px;
       cursor: pointer;
     }
+
+    /* ---------- Мелкий текст под настройками прочих расходов ---------- */
+    .other-costs-note {
+      font-size: 11px;
+      color: #9ca3af;
+      margin-top: 4px;
+      line-height: 1.4;
+    }
+
   </style>
 </head>
 <body>
@@ -610,7 +619,7 @@
       </div>
       <div>
         <div class="app-meta">
-          <div>v2.0 · расчёт в браузере, без передачи данных</div>
+          <div>v2.1 · расчёт в браузере, без передачи данных</div>
           <div>Обратная связь: <a href="https://t.me/Denidevil" target="_blank" rel="noopener noreferrer">@Denidevil</a></div>
         </div>
 
@@ -866,7 +875,7 @@
 
             <div class="field">
               <label for="otherCosts">Прочие расходы, ₽</label>
-              <small>Упаковка, доп. услуги и т.п.</small>
+              <small>Можно ввести вручную или настроить по статьям ниже</small>
               <input type="number" id="otherCosts" placeholder="например, 30" step="0.01" />
             </div>
 
@@ -877,6 +886,54 @@
                 <input type="number" id="buyoutRate" placeholder="например, 80" step="0.01" />
                 <span>%</span>
               </div>
+            </div>
+          </div>
+
+          <!-- Настройки прочих расходов -->
+          <div class="field" style="margin-top:6px;">
+            <button type="button" class="btn-ghost" id="toggleOtherCostsSettings">
+              ⚙️ Настроить прочие расходы
+            </button>
+          </div>
+
+          <div id="otherCostsSettings" style="display:none; margin-top:8px;">
+            <div class="grid">
+              <div class="field">
+                <label for="ffCosts">Фулфилмент (приёмка, маркировка, отправка), ₽</label>
+                <small>Фиксированные расходы на единицу, если есть ФФ</small>
+                <input type="number" id="ffCosts" placeholder="например, 20" step="0.01" />
+              </div>
+
+              <div class="field">
+                <label for="packagingCosts">Упаковка, ₽</label>
+                <small>Стоимость упаковки на единицу товара</small>
+                <input type="number" id="packagingCosts" placeholder="например, 10" step="0.01" />
+              </div>
+            </div>
+
+            <div class="grid">
+              <div class="field">
+                <label>Самовыкупы</label>
+                <small>Расход считается по формуле ниже, без ручного ввода</small>
+                <div class="toggle-row" style="margin-top:0;">
+                  <input type="checkbox" id="useSelfBuys" />
+                  <label for="useSelfBuys">Учитывать расходы на самовыкупы</label>
+                </div>
+              </div>
+
+              <div class="field">
+                <label for="giveawaysPercent">Раздачи, % от цены до СПП</label>
+                <small>Доля расходов на раздачи, по умолчанию 2%</small>
+                <div class="inline-suffix">
+                  <input type="number" id="giveawaysPercent" placeholder="2" step="0.01" />
+                  <span>%</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="other-costs-note">
+              Самовыкупы: (логистика до покупателя при 100% выкупа + 15 ₽ забора + 350 ₽ сервис) × 15% самовыкупов.  
+              Раздачи: цена до СПП × процент раздач.
             </div>
           </div>
 
@@ -1178,7 +1235,6 @@
       const authOpenModalBtn = document.getElementById('authOpenModalBtn');
       const authSignOutBtn = document.getElementById('authSignOutBtn');
 
-      // Рекомендуется сначала getUser, затем getSession. [web:1421]
       const { data: userData } = await supabaseClient.auth.getUser();
       const user = userData?.user || null;
 
@@ -1241,7 +1297,7 @@
           shouldCreateUser: true,
           emailRedirectTo: 'https://wbform.github.io/wb-unit-economics/'
         }
-      }); // [web:1189]
+      });
 
       if (error) {
         console.error('Sign in error:', error);
@@ -1265,7 +1321,7 @@
           options: {
             redirectTo: 'https://wbform.github.io/wb-unit-economics/'
           }
-        }); // [web:1189][web:1384]
+        });
         if (error) {
           console.error('OAuth error:', error);
           if (authMessage) {
@@ -1317,7 +1373,7 @@
     }
 
     supabaseClient.auth.onAuthStateChange((_event, _session) => {
-      updateAuthUI(); // Быстрый апдейт, если событие пришло сразу. [web:1337]
+      updateAuthUI();
     });
 
     function toNumber(value) {
@@ -1697,7 +1753,7 @@
       listEl.style.display = listEl.style.display === 'block' ? 'none' : 'block';
     }
 
-    /* ---------- ЗАГРУЗКА JSON + MAGIC LINK TOKEN + ПУЛЛИНГ СЕССИИ ---------- */
+    /* ---------- ЗАГРУЗКА JSON + AUTH TOKEN + ПУЛЛИНГ СЕССИИ ---------- */
 
     window.addEventListener('DOMContentLoaded', async () => {
       const url = new URL(window.location.href);
@@ -1708,7 +1764,7 @@
 
       if (token) {
         try {
-          await supabaseClient.auth.getSession(); // триггерим обновление сессии, если нужно. [web:1420]
+          await supabaseClient.auth.getSession();
         } catch (e) {
           console.error('Ошибка при восстановлении сессии:', e);
         } finally {
@@ -1742,6 +1798,16 @@
       const photoFileInput = document.getElementById('photoFile');
       if (photoFileInput) {
         photoFileInput.addEventListener('change', handleLocalPhotoChange);
+      }
+
+      // Настройки прочих расходов
+      const toggleOtherCostsBtn = document.getElementById('toggleOtherCostsSettings');
+      const otherCostsSettings = document.getElementById('otherCostsSettings');
+      if (toggleOtherCostsBtn && otherCostsSettings) {
+        toggleOtherCostsBtn.addEventListener('click', () => {
+          const visible = otherCostsSettings.style.display === 'block';
+          otherCostsSettings.style.display = visible ? 'none' : 'block';
+        });
       }
 
       const authOpenModalBtn = document.getElementById('authOpenModalBtn');
@@ -1812,10 +1878,9 @@
       if (btnLoginApple) btnLoginApple.addEventListener('click', () => loginWithProvider('apple'));
       if (btnLoginYandex) btnLoginYandex.addEventListener('click', () => loginWithProvider('custom:yandex'));
 
-      // Стартовое обновление
       updateAuthUI();
 
-      // Активный опрос сессии первые 15 секунд после загрузки (после OAuth‑редиректа) [web:1420][web:1414]
+      // Пуллинг сессии первые 15 секунд
       let authPollAttempts = 0;
       const authPollMaxAttempts = 15;
       const authPollInterval = setInterval(async () => {
@@ -1941,9 +2006,18 @@
       const spp_percent = toNumber(document.getElementById('sppPercent').value);
       const buyout_rate_percent = toNumber(document.getElementById('buyoutRate').value);
       const ads_percent = toNumber(document.getElementById('adsPercent').value);
-      const other_costs = toNumber(document.getElementById('otherCosts').value);
+      const otherCostsManual = toNumber(document.getElementById('otherCosts').value);
       const tax_percent = toNumber(document.getElementById('taxPercent').value);
       const acquiring_percent = toNumber(document.getElementById('acquiringPercent').value);
+
+      // Настройки прочих расходов
+      const ffCosts = toNumber(document.getElementById('ffCosts')?.value);
+      const packagingCosts = toNumber(document.getElementById('packagingCosts')?.value);
+      const useSelfBuys = document.getElementById('useSelfBuys')?.checked ?? false;
+      const giveawaysPercentInput = document.getElementById('giveawaysPercent')?.value;
+      const giveawaysPercent = giveawaysPercentInput === ''
+        ? 2
+        : toNumber(giveawaysPercentInput);
 
       const fee_percent = currentFeePercent || 0;
 
@@ -2002,6 +2076,25 @@
         C_logistics_per_unit = C_ship_to + C_ship_back;
       }
 
+      // ---- Прочие расходы по статьям ----
+      const C_ff = ffCosts;
+      const C_pack = packagingCosts;
+
+      // Самовыкупы: логистика до покупателя при 100% выкупа + 15 + 350, затем ×15%
+      const C_logistics_100 = C_ship_to; // forward при 100% выкупа
+      let C_selfBuys = 0;
+      if (useSelfBuys) {
+        C_selfBuys = (C_logistics_100 + 15 + 350) * 0.15;
+      }
+
+      // Раздачи: P × процент раздач
+      const C_giveaways = P * (giveawaysPercent / 100);
+
+      const otherCostsFromSettings = C_ff + C_pack + C_selfBuys + C_giveaways;
+
+      // Итоговые прочие расходы = ручной ввод (если есть) + настройки
+      const other_costs = otherCostsManual + otherCostsFromSettings;
+
       const C_base_before_tax =
         C_purchase +
         C_logistics_per_unit +
@@ -2019,6 +2112,7 @@
       const Profit = P - C_total;
       const margin_percent = P > 0 ? (Profit / P) * 100 : 0;
 
+      // Минимальная цена для целевой маржи
       let P_min = 0;
       const target_margin_percent = toNumber(document.getElementById('targetMargin').value);
       if (target_margin_percent > 0) {
@@ -2129,6 +2223,12 @@
       if (statusEl) statusEl.textContent = '';
 
       document.getElementById('results').style.display = 'none';
+
+      // Сброс дополнительных прочих расходов
+      const otherCostsSettings = document.getElementById('otherCostsSettings');
+      if (otherCostsSettings) otherCostsSettings.style.display = 'none';
+      const toggleOtherCostsBtn = document.getElementById('toggleOtherCostsSettings');
+      if (toggleOtherCostsBtn) toggleOtherCostsBtn.textContent = '⚙️ Настроить прочие расходы';
     }
 
     function saveToTable() {
